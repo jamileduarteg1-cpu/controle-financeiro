@@ -1,0 +1,308 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanControl - Controle Financeiro, Salário & Google Sheets</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- TOP HEADER -->
+    <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap items-center justify-between py-3 gap-3">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+                    <div class="bg-emerald-500 text-slate-950 p-2.5 rounded-xl flex items-center justify-center font-bold shadow-md shadow-emerald-500/20">
+                        <i class="fa-solid fa-wallet text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-lg tracking-tight text-white">Finan<span class="text-emerald-400">Control</span></span>
+                        <span class="text-[11px] text-slate-400 block -mt-1">Nuvem & Controle Pessoal</span>
+                    </div>
+                </div>
+
+                <!-- Indicador de Status Google Sheets + Botões de Nuvem -->
+                <div class="flex items-center flex-wrap gap-2 order-3 lg:order-2 w-full lg:w-auto justify-between lg:justify-center bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/80">
+                    <div id="cloudStatusBadge" class="flex items-center space-x-2 text-xs font-medium px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                        <span id="cloudStatusText">Modo Local / Sem URL</span>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5">
+                        <button onclick="syncNowFromCloud(true)" id="btnSyncNow" title="Baixar e Sincronizar com Google Sheets" class="bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center active:scale-95">
+                            <i id="syncIcon" class="fa-solid fa-rotate mr-1.5"></i> <span class="hidden sm:inline">Sincronizar Agora</span>
+                        </button>
+                        <button onclick="openCloudConfigModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center shadow-sm active:scale-95">
+                            <i class="fa-solid fa-cloud mr-1.5"></i> Configurar Planilha
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seletor Global de Mês/Ano + Botão Novo Lançamento -->
+                <div class="flex items-center space-x-2 order-2 lg:order-3">
+                    <div class="flex items-center bg-slate-800 rounded-xl p-1 border border-slate-700">
+                        <button onclick="changeMonth(-1)" class="p-2 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition" title="Mês Anterior">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                        <input type="month" id="globalMonthPicker" onchange="onMonthPickerChange(this.value)" class="bg-transparent text-xs sm:text-sm text-center text-white font-semibold focus:outline-none px-1.5 cursor-pointer">
+                        <button onclick="changeMonth(1)" class="p-2 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition" title="Próximo Mês">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+
+                    <button onclick="openTransactionModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center shadow-lg shadow-emerald-500/20 active:scale-95">
+                        <i class="fa-solid fa-plus sm:mr-1.5"></i> <span class="hidden sm:inline">Novo Lançamento</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegação de Abas Touch-Friendly -->
+        <nav class="bg-slate-800 border-t border-slate-700/70 text-xs sm:text-sm">
+            <div class="max-w-7xl mx-auto px-4 flex space-x-1 sm:space-x-4 overflow-x-auto no-scrollbar">
+                <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="nav-tab py-3.5 px-3 text-emerald-400 font-bold border-b-2 border-emerald-400 flex items-center whitespace-nowrap transition">
+                    <i class="fa-solid fa-chart-pie mr-2"></i> Dashboard
+                </button>
+                <button id="tab-btn-transactions" onclick="switchTab('transactions')" class="nav-tab py-3.5 px-3 text-slate-400 hover:text-slate-200 font-medium border-b-2 border-transparent flex items-center whitespace-nowrap transition">
+                    <i class="fa-solid fa-list-check mr-2"></i> Lançamentos
+                </button>
+                <button id="tab-btn-salary" onclick="switchTab('salary')" class="nav-tab py-3.5 px-3 text-slate-400 hover:text-slate-200 font-medium border-b-2 border-transparent flex items-center whitespace-nowrap transition">
+                    <i class="fa-solid fa-file-invoice-dollar mr-2"></i> Salário & Holerite
+                </button>
+                <button id="tab-btn-loans" onclick="switchTab('loans')" class="nav-tab py-3.5 px-3 text-slate-400 hover:text-slate-200 font-medium border-b-2 border-transparent flex items-center whitespace-nowrap transition">
+                    <i class="fa-solid fa-handshake mr-2"></i> Empréstimos & Consignados
+                </button>
+                <button id="tab-btn-accounts" onclick="switchTab('accounts')" class="nav-tab py-3.5 px-3 text-slate-400 hover:text-slate-200 font-medium border-b-2 border-transparent flex items-center whitespace-nowrap transition">
+                    <i class="fa-solid fa-piggy-bank mr-2"></i> Contas & Orçamentos
+                </button>
+                <button id="tab-btn-settings" onclick="switchTab('settings')" class="nav-tab py-3.5 px-3 text-slate-400 hover:text-slate-200 font-medium border-b-2 border-transparent flex items-center whitespace-nowrap transition">
+                    <i class="fa-solid fa-database mr-2"></i> Backup & Dados
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+        <!-- ALERTAS INTELIGENTES -->
+        <div id="alertsContainer" class="mb-6 space-y-2 hidden"></div>
+
+        <!-- ========================================================= -->
+        <!-- ABA 1: DASHBOARD / VISÃO GERAL                            -->
+        <!-- ========================================================= -->
+        <section id="tab-dashboard" class="space-y-6">
+            <!-- 5 Cards KPI -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Saldo Atual Efetivado -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
+                        <span>Saldo Efetivado</span>
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-wallet text-sm"></i></div>
+                    </div>
+                    <div class="mt-3">
+                        <div id="cardCurrentBalance" class="text-xl sm:text-2xl font-extrabold text-slate-900">R$ 0,00</div>
+                        <p class="text-[11px] text-slate-400 mt-1">Disponível nas contas hoje</p>
+                    </div>
+                </div>
+
+                <!-- Receitas do Mês -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
+                        <span>Receitas do Mês</span>
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-arrow-down-left text-sm"></i></div>
+                    </div>
+                    <div class="mt-3">
+                        <div id="cardIncomeRealized" class="text-xl font-extrabold text-emerald-600">R$ 0,00</div>
+                        <div class="flex justify-between text-xs text-slate-500 mt-1">
+                            <span>Previsto total:</span>
+                            <span id="cardIncomePredicted" class="font-semibold text-slate-700">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Despesas do Mês -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
+                        <span>Despesas do Mês</span>
+                        <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center"><i class="fa-solid fa-arrow-up-right text-sm"></i></div>
+                    </div>
+                    <div class="mt-3">
+                        <div id="cardExpenseRealized" class="text-xl font-extrabold text-rose-600">R$ 0,00</div>
+                        <div class="flex justify-between text-xs text-slate-500 mt-1">
+                            <span>Previsto total:</span>
+                            <span id="cardExpensePredicted" class="font-semibold text-slate-700">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projeção Fim do Mês -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
+                        <span>Projeção Fim Mês</span>
+                        <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-calculator text-sm"></i></div>
+                    </div>
+                    <div class="mt-3">
+                        <div id="cardProjectedBalance" class="text-xl font-extrabold text-indigo-600">R$ 0,00</div>
+                        <p class="text-[11px] text-slate-400 mt-1">Saldo atual + pendências</p>
+                    </div>
+                </div>
+
+                <!-- Total Comprometido em Empréstimos -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between hover:shadow-md transition cursor-pointer" onclick="switchTab('loans')">
+                    <div class="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
+                        <span>Empréstimos Ativos</span>
+                        <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center"><i class="fa-solid fa-handshake text-sm"></i></div>
+                    </div>
+                    <div class="mt-3">
+                        <div id="cardLoansTotalDebt" class="text-xl font-extrabold text-purple-700">R$ 0,00</div>
+                        <p id="cardLoansMonthlySummary" class="text-[11px] text-purple-600 font-medium mt-1">Consignados + Pessoais</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner Salário & Holerite -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-5 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 text-2xl shrink-0">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-base text-white flex items-center flex-wrap gap-2">
+                            Salário Líquido & Margem Consignável
+                            <span id="dashMarginBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/30 font-semibold">Holerite</span>
+                        </h4>
+                        <p id="dashSalaryText" class="text-xs text-slate-300 mt-1">Cadastre seu salário líquido e controle seus empréstimos descontados em folha.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <button onclick="launchNetSalaryTx()" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-semibold px-3.5 py-2.5 rounded-xl text-xs whitespace-nowrap transition">
+                        <i class="fa-solid fa-bolt mr-1"></i> Lançar Salário do Mês
+                    </button>
+                    <button onclick="switchTab('salary')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs whitespace-nowrap transition shadow-lg shadow-emerald-500/20">
+                        Abrir Holerite <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gráficos Chart.js -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-800 text-base flex items-center">
+                            <i class="fa-solid fa-chart-column text-emerald-500 mr-2"></i> Fluxo de Caixa (Entradas vs Saídas)
+                        </h3>
+                        <span class="text-xs text-slate-400 font-medium">Mês Selecionado</span>
+                    </div>
+                    <div class="relative h-64 w-full">
+                        <canvas id="chartCashFlow"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-800 text-base flex items-center">
+                            <i class="fa-solid fa-chart-pie text-indigo-500 mr-2"></i> Despesas por Categoria
+                        </h3>
+                        <span class="text-xs text-slate-400 font-medium">Distribuição</span>
+                    </div>
+                    <div class="relative h-64 w-full flex items-center justify-center">
+                        <canvas id="chartCategories"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Próximos Vencimentos -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-slate-800 text-base flex items-center">
+                        <i class="fa-regular fa-clock text-amber-500 mr-2"></i> Próximos Vencimentos & Pendências do Mês
+                    </h3>
+                    <button onclick="switchTab('transactions')" class="text-xs text-emerald-600 hover:text-emerald-700 font-bold">Ver todos <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-[11px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-3">Vencimento</th>
+                                <th class="py-3 px-3">Descrição</th>
+                                <th class="py-3 px-3">Categoria</th>
+                                <th class="py-3 px-3">Valor</th>
+                                <th class="py-3 px-3">Status</th>
+                                <th class="py-3 px-3 text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboardUpcomingTable" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- ABA 2: LANÇAMENTOS (ENTRADAS E SAÍDAS)                    -->
+        <!-- ========================================================= -->
+        <section id="tab-transactions" class="space-y-6 hidden">
+            <!-- Filtros -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row gap-3 items-center justify-between">
+                <div class="relative w-full lg:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="filterSearch" oninput="renderTransactions()" placeholder="Buscar descrição..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full lg:w-auto">
+    
