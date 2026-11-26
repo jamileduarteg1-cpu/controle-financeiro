@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -305,20 +304,21 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full lg:w-auto">
-                        <select id="filterType" onchange="renderTransactions()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
-                        <option value="ALL">Todos os Tipos</option>
-                        <option value="INCOME">Receitas (+)</option>
-                        <option value="EXPENSE">Despesas (-)</option>
+                    <select id="filterStatus" onchange="renderTransactions()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:border-emerald-500">
+                        <option value="ALL">Status: Todos</option>
+                        <option value="PENDING">Previsto (Pendente)</option>
+                        <option value="COMPLETED">Efetivado (Pago/Recebido)</option>
+                        <option value="OVERDUE">Atrasados</option>
                     </select>
 
-                    <select id="filterCategory" onchange="renderTransactions()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
-                        <option value="ALL">Todas as Categorias</option>
+                    <select id="filterType" onchange="renderTransactions()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:border-emerald-500">
+                        <option value="ALL">Tipo: Todos</option>
+                        <option value="INCOME">Entradas / Receitas</option>
+                        <option value="EXPENSE">Saídas / Despesas</option>
                     </select>
 
-                    <select id="filterStatus" onchange="renderTransactions()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:outline-none focus:border-emerald-500">
-                        <option value="ALL">Todos os Status</option>
-                        <option value="PAID">Efetivado / Pago</option>
-                        <option value="PENDING">Pendente</option>
+                    <select id="filterCategory" onchange="renderTransactions()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:border-emerald-500">
+                        <option value="ALL">Categoria: Todas</option>
                     </select>
                 </div>
             </div>
@@ -326,168 +326,264 @@
             <!-- Tabela de Lançamentos -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs sm:text-sm">
-                        <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-[11px] tracking-wider border-b border-slate-200">
-                            <tr>
-                                <th class="py-3.5 px-4">Data</th>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200">
+                                <th class="py-3.5 px-4">Status</th>
+                                <th class="py-3.5 px-4">Vencimento</th>
                                 <th class="py-3.5 px-4">Descrição</th>
                                 <th class="py-3.5 px-4">Categoria</th>
                                 <th class="py-3.5 px-4">Conta</th>
-                                <th class="py-3.5 px-4">Valor</th>
-                                <th class="py-3.5 px-4">Status</th>
-                                <th class="py-3.5 px-4 text-right">Ações</th>
+                                <th class="py-3.5 px-4 text-right">Valor</th>
+                                <th class="py-3.5 px-4 text-center">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="transactionsTableBody" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="transactionsTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm"></tbody>
                     </table>
                 </div>
-                <div id="transactionsEmptyState" class="p-10 text-center text-slate-400 hidden">
-                    <i class="fa-solid fa-receipt text-3xl mb-2 opacity-50"></i>
-                    <p class="text-sm font-medium">Nenhum lançamento encontrado para este filtro/mês.</p>
+
+                <!-- Rodapé Totais -->
+                <div class="bg-slate-50 px-5 py-3.5 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-600 gap-2">
+                    <div>Exibindo <span id="filteredCount" class="font-bold text-slate-900">0</span> lançamento(s)</div>
+                    <div class="flex space-x-5">
+                        <span class="text-emerald-600 font-bold">Entradas: <span id="filteredIncome">R$ 0,00</span></span>
+                        <span class="text-rose-600 font-bold">Saídas: <span id="filteredExpense">R$ 0,00</span></span>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- ========================================================= -->
-        <!-- ABA 3: SALÁRIO & HOLERITE                                 -->
+        <!-- ABA 3: SALÁRIO LÍQUIDO & HOLERITE                         -->
         <!-- ========================================================= -->
         <section id="tab-salary" class="space-y-6 hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Formulário de Holerite -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 space-y-5">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                        <div>
-                            <h3 class="font-bold text-slate-800 text-lg flex items-center">
-                                <i class="fa-solid fa-file-invoice-dollar text-emerald-600 mr-2"></i> Configuração de Salário & Holerite
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Defina seus vencimentos e descontos para calcular salário líquido e margem consignável.</p>
-                        </div>
-                        <button onclick="launchNetSalaryTx()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs transition shadow-sm">
-                            <i class="fa-solid fa-bolt mr-1"></i> Lançar Salário do Mês
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Salário Bruto (R$)</label>
-                            <input type="number" step="0.01" id="salGross" oninput="calculateSalaryPreview()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-500" placeholder="0,00">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Outros Proventos / Bônus (R$)</label>
-                            <input type="number" step="0.01" id="salBonus" oninput="calculateSalaryPreview()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-500" placeholder="0,00">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Desconto INSS (R$)</label>
-                            <input type="number" step="0.01" id="salInss" oninput="calculateSalaryPreview()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-rose-500" placeholder="0,00">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Desconto IRRF (R$)</label>
-                            <input type="number" step="0.01" id="salIrrf" oninput="calculateSalaryPreview()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-rose-500" placeholder="0,00">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Outros Descontos / Benefícios (R$)</label>
-                            <input type="number" step="0.01" id="salOtherDed" oninput="calculateSalaryPreview()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-rose-500" placeholder="0,00">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Dia de Pagamento (1 a 31)</label>
-                            <input type="number" min="1" max="31" id="salPayDay" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-500" placeholder="5">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Conta de Destino do Salário</label>
-                            <select id="salAccountId" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-500"></select>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 flex justify-end">
-                        <button onclick="saveSalaryConfig()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition flex items-center">
-                            <i class="fa-solid fa-floppy-disk mr-2"></i> Salvar Dados do Holerite
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Resumo & Margem Consignável -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 flex flex-col justify-between">
-                    <div class="space-y-4">
-                        <h3 class="font-bold text-slate-800 text-base flex items-center">
-                            <i class="fa-solid fa-scale-balanced text-indigo-600 mr-2"></i> Resumo Líquido & Margem
-                        </h3>
-
-                        <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-                            <span class="text-xs font-bold uppercase text-emerald-700">Salário Líquido Estimado</span>
-                            <div id="salNetPreview" class="text-2xl font-extrabold text-emerald-800 mt-1">R$ 0,00</div>
-                        </div>
-
-                        <div class="p-4 rounded-xl bg-purple-50 border border-purple-200 space-y-2">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold uppercase text-purple-800">Margem Consignável (35%)</span>
-                                <span id="salMarginTotal" class="text-sm font-extrabold text-purple-900">R$ 0,00</span>
-                            </div>
-                            <div class="flex justify-between text-xs text-purple-700">
-                                <span>Usado em consignados:</span>
-                                <span id="salMarginUsed" class="font-bold">R$ 0,00</span>
-                            </div>
-                            <div class="flex justify-between text-xs text-purple-900 font-bold border-t border-purple-200 pt-1.5">
-                                <span>Margem disponível:</span>
-                                <span id="salMarginAvailable">R$ 0,00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p class="text-[11px] text-slate-400">
-                        * Cálculo referencial de 35% sobre o salário líquido para acompanhamento de parcelas consignadas ativas.
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-money-bill-trend-up text-emerald-500"></i> Salário Líquido & Holerite
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1 max-w-2xl">
+                        Informe seu salário bruto e o <b>Salário Líquido Real</b> que cai na sua conta. Os empréstimos consignados em folha são descontados antes do crédito bancário e não geram cobrança duplicada.
                     </p>
                 </div>
-            </div>
-        </section>
-
-        <!-- ========================================================= -->
-        <!-- ABA 4: EMPRÉSTIMOS & CONSIGNADOS                          -->
-        <!-- ========================================================= -->
-        <section id="tab-loans" class="space-y-6 hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                <div>
-                    <h3 class="font-bold text-slate-800 text-lg flex items-center">
-                        <i class="fa-solid fa-handshake text-purple-600 mr-2"></i> Empréstimos & Consignados
-                    </h3>
-                    <p class="text-xs text-slate-500">Controle parcelas, saldo devedor e abatimentos mensais.</p>
-                </div>
-                <button onclick="openLoanModal()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center justify-center shadow-sm">
-                    <i class="fa-solid fa-plus mr-2"></i> Novo Empréstimo
+                <button onclick="launchNetSalaryTx()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center whitespace-nowrap active:scale-95">
+                    <i class="fa-solid fa-calendar-check mr-2"></i> Lançar Salário Líquido no Mês Atual
                 </button>
             </div>
 
-            <div id="loansGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Formulário Salário -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3 flex items-center justify-between">
+                        <span>Parâmetros do Holerite</span>
+                        <i class="fa-solid fa-sliders text-slate-400"></i>
+                    </h3>
+                    <form id="formSalaryConfig" onsubmit="saveSalaryConfig(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Salário Bruto (R$)</label>
+                            <input type="number" step="0.01" min="0" id="salGross" placeholder="Ex: 7000,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Salário Líquido Real (R$)*</label>
+                            <input type="number" step="0.01" min="0" id="salNet" required placeholder="Ex: 4850,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-emerald-600 focus:outline-none focus:border-emerald-500">
+                            <span class="text-[11px] text-slate-400 mt-1 block">Valor líquido depositado na conta bancária.</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Dia Recebimento</label>
+                                <input type="number" min="1" max="31" id="salDay" value="5" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Margem Legal (%)</label>
+                                <select id="salMarginPct" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-emerald-500">
+                                    <option value="35">35% (CLT Padrão)</option>
+                                    <option value="40">40% (Servidor / INSS)</option>
+                                    <option value="45">45% (Margem Total)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Conta de Destino</label>
+                            <select id="salAccountId" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500"></select>
+                        </div>
+
+                        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-xs sm:text-sm transition shadow-sm active:scale-95">
+                            Salvar Dados Salariais
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Análise de Margem Consignável & Simulador -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 space-y-5 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base border-b border-slate-100 pb-3 flex items-center justify-between">
+                            <span>Raio-X da Margem Consignável</span>
+                            <span class="text-xs px-2.5 py-1 bg-purple-100 text-purple-800 rounded-full font-bold">Desconto em Folha</span>
+                        </h3>
+
+                        <!-- Barra de Margem -->
+                        <div class="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                            <div class="flex justify-between items-center text-xs sm:text-sm">
+                                <span class="font-bold text-slate-700">Margem Utilizada vs Limite Legal:</span>
+                                <span id="salMarginText" class="font-extrabold text-purple-700">R$ 0,00 / R$ 0,00</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3.5 overflow-hidden">
+                                <div id="salMarginBar" class="h-3.5 bg-purple-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-slate-500">
+                                <span>Comprometido: <b id="salMarginUsedPct" class="text-slate-800">0%</b></span>
+                                <span>Margem Livre Disponível: <b id="salMarginFree" class="text-emerald-600">R$ 0,00</b></span>
+                            </div>
+                        </div>
+
+                        <!-- Cards Holerite -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                            <div class="p-3.5 bg-slate-100 rounded-xl text-center">
+                                <span class="text-[11px] text-slate-500 font-semibold block">Salário Bruto</span>
+                                <span id="dispGrossSalary" class="text-base font-extrabold text-slate-800">R$ 0,00</span>
+                            </div>
+                            <div class="p-3.5 bg-purple-50 rounded-xl text-center border border-purple-200/70">
+                                <span class="text-[11px] text-purple-700 font-semibold block">(-) Consignados em Folha</span>
+                                <span id="dispConsignedDeduction" class="text-base font-extrabold text-purple-700">R$ 0,00</span>
+                            </div>
+                            <div class="p-3.5 bg-emerald-50 rounded-xl text-center border border-emerald-200/70">
+                                <span class="text-[11px] text-emerald-700 font-semibold block">(=) Salário Líquido em Conta</span>
+                                <span id="dispNetSalary" class="text-base font-extrabold text-emerald-700">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simulador Pós-Quitação -->
+                    <div class="bg-gradient-to-r from-purple-900 to-indigo-900 text-white p-4 rounded-2xl shadow-sm">
+                        <span class="text-[11px] text-purple-200 font-bold uppercase tracking-wider block mb-1">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Simulador de Aumento Pós-Quitação
+                        </span>
+                        <p id="salFutureBoostText" class="text-xs sm:text-sm text-purple-50 leading-relaxed">
+                            Quando você quitar todos os empréstimos consignados ativos, seu salário líquido mensal subirá para <b class="text-emerald-300">R$ 0,00</b>!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consignados Ativos no Holerite -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base">Contratos Consignados Descontados em Folha</h3>
+                        <p class="text-xs text-slate-400">Estes contratos abatem sua margem consignável sem debitar duas vezes da sua conta.</p>
+                    </div>
+                    <button onclick="openLoanModal('CONSIGNED')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center shadow-md shadow-purple-500/20">
+                        <i class="fa-solid fa-plus mr-1.5"></i> Novo Consignado
+                    </button>
+                </div>
+
+                <div id="salaryConsignedList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
         </section>
 
         <!-- ========================================================= -->
-        <!-- ABA 5: CONTAS & ORÇAMENTOS                                -->
+        <!-- ABA 4: EMPRÉSTIMOS (CONSIGNADOS, TOMADOS E CONCEDIDOS)    -->
+        <!-- ========================================================= -->
+        <section id="tab-loans" class="space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900">Gestão de Empréstimos</h2>
+                    <p class="text-xs text-slate-500">Acompanhe consignados em folha, empréstimos a pagar em conta e valores a receber.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openLoanModal('CONSIGNED')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs shadow-sm transition flex items-center">
+                        <i class="fa-solid fa-building-columns mr-1.5"></i> + Consignado Folha
+                    </button>
+                    <button onclick="openLoanModal('TAKEN')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs shadow-sm transition flex items-center">
+                        <i class="fa-solid fa-file-invoice-dollar mr-1.5"></i> + A Pagar (Conta)
+                    </button>
+                    <button onclick="openLoanModal('GIVEN')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs shadow-sm transition flex items-center">
+                        <i class="fa-solid fa-hand-holding-dollar mr-1.5"></i> + A Receber
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resumo dos 3 Tipos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-purple-50 border border-purple-200 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-[11px] text-purple-700 font-bold uppercase">Consignados (Folha)</span>
+                        <div id="loanTotalConsigned" class="text-xl sm:text-2xl font-extrabold text-purple-900 mt-1">R$ 0,00</div>
+                        <span id="loanConsignedMonthlyCount" class="text-xs text-purple-700 font-medium block mt-0.5">R$ 0,00/mês</span>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                </div>
+
+                <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-[11px] text-rose-700 font-bold uppercase">A Pagar (Via Conta)</span>
+                        <div id="loanTotalTaken" class="text-xl sm:text-2xl font-extrabold text-rose-800 mt-1">R$ 0,00</div>
+                        <span class="text-xs text-rose-600 block mt-0.5">Debitados da conta ao pagar</span>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-[11px] text-emerald-700 font-bold uppercase">Concedidos (A Receber)</span>
+                        <div id="loanTotalGiven" class="text-xl sm:text-2xl font-extrabold text-emerald-800 mt-1">R$ 0,00</div>
+                        <span class="text-xs text-emerald-600 block mt-0.5">Emprestado para terceiros</span>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards dos Contratos -->
+            <div id="loansList" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- ABA 5: CONTAS / CARTEIRAS E ORÇAMENTOS                    -->
         <!-- ========================================================= -->
         <section id="tab-accounts" class="space-y-6 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Contas -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-slate-800 text-base flex items-center">
-                            <i class="fa-solid fa-building-columns text-blue-600 mr-2"></i> Minhas Contas & Carteiras
-                        </h3>
-                        <button onclick="openAccountModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Contas & Carteiras</h3>
+                            <p class="text-xs text-slate-400">Saldos iniciais + movimentações efetivadas</p>
+                        </div>
+                        <button onclick="openAccountModal()" class="text-xs bg-slate-900 hover:bg-slate-800 text-white font-semibold px-3.5 py-2 rounded-xl transition">
                             <i class="fa-solid fa-plus mr-1"></i> Nova Conta
                         </button>
                     </div>
-                    <div id="accountsList" class="space-y-3"></div>
+
+                    <div id="accountsList" class="space-y-3 my-2"></div>
+
+                    <div class="pt-3 border-t border-slate-100 flex justify-between items-center font-extrabold text-slate-800 text-sm">
+                        <span>Patrimônio Líquido em Contas:</span>
+                        <span id="accountsTotalBalance" class="text-emerald-600 text-base">R$ 0,00</span>
+                    </div>
                 </div>
 
-                <!-- Orçamentos por Categoria -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-slate-800 text-base flex items-center">
-                            <i class="fa-solid fa-sliders text-emerald-600 mr-2"></i> Limites de Orçamento Mensal
-                        </h3>
-                        <button onclick="saveBudgets()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">
-                            <i class="fa-solid fa-check mr-1"></i> Salvar Limites
+                <!-- Orçamentos -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Teto de Gastos Mensal</h3>
+                            <p class="text-xs text-slate-400">Acompanhe o consumo por categoria no mês</p>
+                        </div>
+                        <button onclick="openBudgetModal()" class="text-xs bg-slate-900 hover:bg-slate-800 text-white font-semibold px-3.5 py-2 rounded-xl transition">
+                            <i class="fa-solid fa-sliders mr-1"></i> Definir Teto
                         </button>
                     </div>
-                    <div id="budgetsList" class="space-y-3 max-h-[420px] overflow-y-auto pr-1"></div>
+
+                    <div id="budgetsList" class="space-y-4 my-2 max-h-96 overflow-y-auto pr-1"></div>
                 </div>
             </div>
         </section>
@@ -496,24 +592,77 @@
         <!-- ABA 6: BACKUP & DADOS                                     -->
         <!-- ========================================================= -->
         <section id="tab-settings" class="space-y-6 hidden">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                <div>
-                    <h3 class="font-bold text-slate-800 text-lg flex items-center">
-                        <i class="fa-solid fa-database text-indigo-600 mr-2"></i> Backup Local, Exportação & Google Sheets
-                    </h3>
-                    <p class="text-xs text-slate-500 mt-1">Exporte ou restaure seus dados em JSON, ou configure a sincronização com o Google Sheets.</p>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-4xl mx-auto space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-900 flex items-center">
+                            <i class="fa-solid fa-cloud-arrow-up text-indigo-600 mr-2"></i> Nuvem Google Sheets & Backups Locais
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Sincronize com sua planilha do Google Drive ou exporte cópias de segurança para o dispositivo.</p>
+                    </div>
+                    <button onclick="openCloudConfigModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center shadow-sm">
+                        <i class="fa-solid fa-gear mr-1.5"></i> Configurar Google Sheets
+                    </button>
                 </div>
 
-                <div class="flex flex-wrap gap-3">
-                    <button onclick="exportBackupJSON()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center">
-                        <i class="fa-solid fa-download mr-2"></i> Baixar Backup (JSON)
-                    </button>
-                    <label class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center cursor-pointer">
-                        <i class="fa-solid fa-upload mr-2"></i> Restaurar Backup (JSON)
-                        <input type="file" accept=".json" onchange="importBackupJSON(event)" class="hidden">
-                    </label>
-                    <button onclick="openCloudConfigModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition flex items-center">
-                        <i class="fa-solid fa-cloud mr-2"></i> Configurar URL Google Sheets
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="border border-slate-200 p-4 rounded-2xl flex flex-col justify-between space-y-3 bg-slate-50/50">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center">
+                                <i class="fa-solid fa-download text-indigo-600 mr-2"></i> Exportar Backup Completo (JSON)
+                            </h4>
+                            <p class="text-xs text-slate-500 mt-1">Salva todos os lançamentos, consignados, contas e salário em arquivo JSON.</p>
+                        </div>
+                        <button onclick="exportJSONBackup()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-2.5 rounded-xl transition">
+                            Baixar Arquivo JSON
+                        </button>
+                    </div>
+
+                    <div class="border border-slate-200 p-4 rounded-2xl flex flex-col justify-between space-y-3 bg-slate-50/50">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center">
+                                <i class="fa-solid fa-upload text-emerald-600 mr-2"></i> Restaurar Backup (JSON)
+                            </h4>
+                            <p class="text-xs text-slate-500 mt-1">Importa um backup JSON e sincroniza automaticamente com a nuvem.</p>
+                        </div>
+                        <label class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2.5 rounded-xl transition text-center cursor-pointer block">
+                            Selecionar Arquivo JSON
+                            <input type="file" id="importJsonInput" accept=".json" onchange="importJSONBackup(event)" class="hidden">
+                        </label>
+                    </div>
+
+                    <div class="border border-slate-200 p-4 rounded-2xl flex flex-col justify-between space-y-3 bg-slate-50/50">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center">
+                                <i class="fa-solid fa-file-csv text-teal-600 mr-2"></i> Exportar Planilha do Mês (CSV)
+                            </h4>
+                            <p class="text-xs text-slate-500 mt-1">Gera relatório compatível com Excel/Sheets apenas do mês selecionado.</p>
+                        </div>
+                        <button onclick="exportCSVReport()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs py-2.5 rounded-xl transition">
+                            Exportar CSV do Mês
+                        </button>
+                    </div>
+
+                    <div class="border border-slate-200 p-4 rounded-2xl flex flex-col justify-between space-y-3 bg-slate-50/50">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-500 mr-2"></i> Dados de Exemplo (Demo)
+                            </h4>
+                            <p class="text-xs text-slate-500 mt-1">Preenche o aplicativo com salário, consignado, contas e lançamentos fictícios.</p>
+                        </div>
+                        <button onclick="loadDemoData()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition">
+                            Carregar Dados Demo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-extrabold text-rose-600 uppercase">Zona de Perigo</span>
+                        <p class="text-xs text-slate-400">Limpa os registros locais do navegador (e sobrescreve a nuvem se sincronizado).</p>
+                    </div>
+                    <button onclick="confirmResetAllData()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs px-4 py-2.5 rounded-xl transition border border-rose-200 whitespace-nowrap">
+                        <i class="fa-solid fa-trash mr-1.5"></i> Zerar Todos os Dados
                     </button>
                 </div>
             </div>
@@ -521,931 +670,1920 @@
 
     </main>
 
-    <!-- RODAPÉ -->
-    <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-400">
-        FinanControl &bull; Controle Financeiro Pessoal com sincronização em nuvem via Google Apps Script
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto px-4">
+            FinanControl &copy; <span id="footerYear"></span> - Gestão Financeira Pessoal sincronizada com Google Sheets.
+        </div>
     </footer>
-    <!-- ========================================================= -->
-    <!-- MODAIS                                                    -->
-    <!-- ========================================================= -->
 
-    <!-- Modal: Novo / Editar Lançamento -->
-    <div id="transactionModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-                <h3 id="txModalTitle" class="font-bold text-base flex items-center">
-                    <i class="fa-solid fa-plus-circle text-emerald-400 mr-2"></i> Novo Lançamento
+    <!-- ========================================================= -->
+    <!-- MODAL: CONFIGURAR PLANILHA GOOGLE SHEETS (NUVEM)          -->
+    <!-- ========================================================= -->
+    <div id="modalCloudConfig" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div class="bg-slate-900 px-6 py-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-base flex items-center">
+                    <i class="fa-solid fa-cloud text-indigo-400 mr-2"></i> Configurar Planilha Google Sheets (Nuvem)
                 </h3>
-                <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeCloudConfigModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form id="transactionForm" onsubmit="saveTransaction(event)" class="p-6 space-y-4 text-xs sm:text-sm">
+
+            <div class="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm">
+                <!-- Campo URL -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">URL do Web App (Google Apps Script)</label>
+                    <input type="url" id="cloudScriptUrlInput" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono focus:outline-none focus:border-indigo-600">
+                    <p class="text-[11px] text-slate-500">Cole a URL implantada que termina em <code class="bg-slate-100 px-1 py-0.5 rounded font-bold">/exec</code>. Os dados serão sincronizados automaticamente nas abas <b>Lancamentos</b>, <b>Emprestimos</b>, <b>Contas</b>, <b>Salario</b> e <b>Orcamentos</b>.</p>
+                </div>
+
+                <!-- Botões de Ação da Nuvem -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <button type="button" onclick="testCloudConnection()" id="btnTestCloud" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center">
+                        <i class="fa-solid fa-plug mr-1.5 text-indigo-600"></i> Testar Conexão
+                    </button>
+                    <button type="button" onclick="saveCloudUrlAndPush()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Salvar e Enviar Dados
+                    </button>
+                    <button type="button" onclick="saveCloudUrlAndPull()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-down mr-1.5"></i> Salvar e Baixar Nuvem
+                    </button>
+                </div>
+
+                <div id="cloudTestFeedback" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+
+                <!-- Instruções Rápidas em 3 Passos -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Como conectar em 3 passos rápidos:</h4>
+                        <button type="button" onclick="copyAppsScriptCode()" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold transition flex items-center">
+                            <i class="fa-regular fa-copy mr-1.5 text-emerald-400"></i> Copiar Código do Apps Script
+                        </button>
+                    </div>
+                    <ol class="list-decimal list-inside space-y-1.5 text-xs text-slate-600 leading-relaxed">
+                        <li>Abra sua planilha no <b>Google Sheets</b> e acesse <b>Extensões &gt; Apps Script</b>.</li>
+                        <li>Clique no botão acima para copiar o script, cole no editor (substituindo tudo) e clique em <b>Salvar</b>.</li>
+                        <li>Clique em <b>Implantar &gt; Nova implantação &gt; App da Web</b>, configure <i>Executar como: Eu</i> e <i>Quem pode acessar: Qualquer pessoa</i>, autorize e cole o link <code class="bg-white px-1 rounded border">/exec</code> acima.</li>
+                    </ol>
+                </div>
+
+                <!-- Textarea oculto/visível para fallback de cópia -->
+                <textarea id="appsScriptSourceCode" class="sr-only" readonly></textarea>
+            </div>
+
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center">
+                <button type="button" onclick="clearCloudUrl()" class="text-xs text-rose-600 hover:underline font-semibold">Desconectar Planilha</button>
+                <button type="button" onclick="closeCloudConfigModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 transition">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL: NOVO / EDITAR LANÇAMENTO                           -->
+    <!-- ========================================================= -->
+    <div id="modalTransaction" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-900 px-6 py-4 text-white flex justify-between items-center">
+                <h3 id="modalTxTitle" class="font-bold text-base flex items-center">
+                    <i class="fa-solid fa-pen-to-square text-emerald-400 mr-2"></i> Novo Lançamento
+                </h3>
+                <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="formTransaction" onsubmit="saveTransaction(event)" class="p-6 overflow-y-auto space-y-4">
                 <input type="hidden" id="txId">
+
+                <!-- Tipo -->
                 <div class="grid grid-cols-2 gap-3">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="txType" value="INCOME" class="peer hidden" checked onchange="toggleTxTypeUI()">
+                        <div class="py-2.5 text-center rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-600 peer-checked:bg-emerald-500 peer-checked:text-slate-950 peer-checked:border-emerald-500 transition flex items-center justify-center">
+                            <i class="fa-solid fa-arrow-down-left mr-1.5"></i> Entrada / Receita
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="txType" value="EXPENSE" class="peer hidden" onchange="toggleTxTypeUI()">
+                        <div class="py-2.5 text-center rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-600 peer-checked:bg-rose-500 peer-checked:text-white peer-checked:border-rose-500 transition flex items-center justify-center">
+                            <i class="fa-solid fa-arrow-up-right mr-1.5"></i> Saída / Despesa
+                        </div>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Descrição</label>
+                    <input type="text" id="txDescription" required placeholder="Ex: Supermercado, Salário, Energia" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Tipo</label>
-                        <select id="txType" onchange="populateTxCategories()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
-                            <option value="EXPENSE">Despesa (-)</option>
-                            <option value="INCOME">Receita (+)</option>
-                        </select>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Valor (R$)</label>
+                        <input type="number" step="0.01" min="0.01" id="txAmount" required placeholder="0,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Valor (R$)</label>
-                        <input type="number" step="0.01" min="0.01" id="txAmount" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" placeholder="0,00">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Data de Vencimento</label>
+                        <input type="date" id="txDueDate" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria</label>
+                        <select id="txCategory" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Conta / Carteira</label>
+                        <select id="txAccount" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500"></select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Descrição</label>
-                    <input type="text" id="txDescription" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl" placeholder="Ex: Supermercado, Energia, Salário...">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                    <select id="txStatus" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-emerald-500">
+                        <option value="PENDING">Previsto (Pendente)</option>
+                        <option value="COMPLETED">Efetivado (Pago / Recebido)</option>
+                    </select>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Categoria</label>
-                        <select id="txCategory" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold"></select>
+                <!-- Recorrência -->
+                <div id="repeatSection" class="border-t border-slate-100 pt-3">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Recorrência</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="txRepeat" value="SINGLE" class="peer hidden" checked onchange="toggleRepeatOptions()">
+                            <div class="py-2 text-center text-xs rounded-xl border border-slate-200 font-semibold peer-checked:bg-slate-900 peer-checked:text-white">Único</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="txRepeat" value="INSTALLMENT" class="peer hidden" onchange="toggleRepeatOptions()">
+                            <div class="py-2 text-center text-xs rounded-xl border border-slate-200 font-semibold peer-checked:bg-slate-900 peer-checked:text-white">Parcelado</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="txRepeat" value="RECURRING" class="peer hidden" onchange="toggleRepeatOptions()">
+                            <div class="py-2 text-center text-xs rounded-xl border border-slate-200 font-semibold peer-checked:bg-slate-900 peer-checked:text-white">Fixo Mensal</div>
+                        </label>
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Conta / Carteira</label>
-                        <select id="txAccountId" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold"></select>
+
+                    <div id="installmentOptions" class="mt-3 hidden">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Quantidade de Parcelas (valor será dividido)</label>
+                        <input type="number" min="2" max="72" value="2" id="txInstallmentsCount" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Data</label>
-                        <input type="date" id="txDate" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Status</label>
-                        <select id="txStatus" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
-                            <option value="PAID">Efetivado / Pago</option>
-                            <option value="PENDING">Pendente</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeTransactionModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold shadow-sm">Salvar</button>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeTransactionModal()" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm text-slate-600 font-semibold hover:bg-slate-100 transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold shadow-md transition">Salvar Lançamento</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Novo Empréstimo -->
-    <div id="loanModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+    <!-- ========================================================= -->
+    <!-- MODAL: CADASTRAR EMPRÉSTIMO / CONSIGNADO                  -->
+    <!-- ========================================================= -->
+    <div id="modalLoan" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-900 px-6 py-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-base flex items-center">
                     <i class="fa-solid fa-handshake text-purple-400 mr-2"></i> Novo Empréstimo / Consignado
                 </h3>
-                <button onclick="closeLoanModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeLoanModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form onsubmit="saveLoan(event)" class="p-6 space-y-4 text-xs sm:text-sm">
+            <form id="formLoan" onsubmit="saveLoan(event)" class="p-6 overflow-y-auto space-y-4">
                 <div>
-                    <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Título / Banco</label>
-                    <input type="text" id="loanTitle" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl" placeholder="Ex: Consignado Banco X">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Modalidade</label>
+                    <select id="loanType" required onchange="toggleLoanTypeFields()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-purple-500">
+                        <option value="CONSIGNED">Consignado (Desconto em Folha)</option>
+                        <option value="TAKEN">Empréstimo a Pagar (Parcelado em Conta)</option>
+                        <option value="GIVEN">Empréstimo Concedido (A Receber)</option>
+                    </select>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Modalidade</label>
-                        <select id="loanType" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
-                            <option value="CONSIGNADO">Consignado (Folha)</option>
-                            <option value="PESSOAL">Empréstimo Pessoal</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Valor da Parcela (R$)</label>
-                        <input type="number" step="0.01" min="0.01" id="loanInstallment" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" placeholder="0,00">
-                    </div>
+
+                <div id="consignedInfoCallout" class="p-3 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-800 space-y-1">
+                    <div class="font-bold flex items-center"><i class="fa-solid fa-shield-halved mr-1.5"></i> Proteção contra Bitributação:</div>
+                    <p class="text-[11px] text-purple-700">Como o consignado já é descontado no holerite antes do salário líquido cair na conta, ele não deduz do saldo bancário mensal, mas reduz sua margem consignável.</p>
                 </div>
-                <div class="grid grid-cols-3 gap-3">
+
+                <div>
+                    <label id="loanPersonLabel" class="block text-xs font-semibold text-slate-600 mb-1">Instituição / Banco</label>
+                    <input type="text" id="loanPerson" required placeholder="Ex: Banco do Brasil, Caixa, João Silva" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-purple-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Total Parcelas</label>
-                        <input type="number" min="1" id="loanTotalInstallments" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold" placeholder="48">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Valor da Parcela Mensal (R$)*</label>
+                        <input type="number" step="0.01" min="0.01" id="loanMonthlyInstallment" required placeholder="Ex: 480,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-purple-500">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Parcelas Pagas</label>
-                        <input type="number" min="0" id="loanPaidInstallments" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold" placeholder="0">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Saldo Devedor (R$)</label>
-                        <input type="number" step="0.01" min="0" id="loanRemainingDebt" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" placeholder="0,00">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Total de Parcelas*</label>
+                        <input type="number" min="1" max="360" value="48" id="loanInstallments" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-purple-500">
                     </div>
                 </div>
-                <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeLoanModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold">Salvar</button>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Parcelas Já Pagas</label>
+                        <input type="number" min="0" value="0" id="loanPaidInstallments" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Data de Início</label>
+                        <input type="date" id="loanStartDate" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-purple-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Observações / Nº Contrato</label>
+                    <textarea id="loanNotes" rows="2" placeholder="Opcional..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-purple-500"></textarea>
+                </div>
+
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeLoanModal()" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm text-slate-600 font-semibold hover:bg-slate-100 transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-md transition">Salvar Contrato</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Nova Conta -->
-    <div id="accountModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+    <!-- ========================================================= -->
+    <!-- MODAL: REGISTRAR PAGAMENTO DE PARCELA DE EMPRÉSTIMO       -->
+    <!-- ========================================================= -->
+    <div id="modalPayLoan" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div class="bg-slate-900 px-6 py-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-base flex items-center">
-                    <i class="fa-solid fa-building-columns text-blue-400 mr-2"></i> Nova Conta / Carteira
+                    <i class="fa-solid fa-receipt text-emerald-400 mr-2"></i> Registrar Pagamento de Parcela
                 </h3>
-                <button onclick="closeAccountModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closePayLoanModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form onsubmit="saveAccount(event)" class="p-6 space-y-4 text-xs sm:text-sm">
-                <div>
-                    <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Nome da Conta</label>
-                    <input type="text" id="accName" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl" placeholder="Ex: Nubank, Itaú, Carteira">
+            <form id="formPayLoan" onsubmit="savePayLoan(event)" class="p-6 space-y-4">
+                <input type="hidden" id="payLoanId">
+                <div class="text-xs text-slate-600">
+                    Confirmando baixa de parcela para <span id="payLoanPerson" class="font-bold text-slate-900"></span>.
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-600 uppercase text-[11px] mb-1">Saldo Inicial Atual (R$)</label>
-                    <input type="number" step="0.01" id="accBalance" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" placeholder="0,00">
+
+                <div id="payLoanConsignedNotice" class="hidden p-3 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-800">
+                    <i class="fa-solid fa-info-circle mr-1"></i> Contrato <b>Consignado em Folha</b>: a baixa atualiza o progresso e o saldo devedor sem gerar saída extra na conta corrente.
                 </div>
-                <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeAccountModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold">Salvar</button>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Valor da Parcela (R$)</label>
+                    <input type="number" step="0.01" min="0.01" id="payLoanAmount" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-purple-500">
+                </div>
+
+                <div class="flex items-center space-x-2 pt-1">
+                    <input type="checkbox" id="payLoanCreateTx" class="w-4 h-4 text-emerald-600 rounded border-slate-300">
+                    <label for="payLoanCreateTx" class="text-xs text-slate-700 font-medium">Lançar movimentação correspondente no Fluxo de Caixa</label>
+                </div>
+
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closePayLoanModal()" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm text-slate-600 font-semibold hover:bg-slate-100 transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold shadow-md transition">Confirmar Parcela</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Configurar Planilha Google Sheets -->
-    <div id="cloudConfigModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-                <h3 class="font-bold text-base flex items-center">
-                    <i class="fa-solid fa-cloud text-indigo-400 mr-2"></i> Configurar Google Sheets (/exec)
-                </h3>
-                <button onclick="closeCloudConfigModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+    <!-- ========================================================= -->
+    <!-- MODAL: NOVA CONTA / CARTEIRA                              -->
+    <!-- ========================================================= -->
+    <div id="modalAccount" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+            <div class="bg-slate-900 px-6 py-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-base">Nova Conta / Carteira</h3>
+                <button onclick="closeAccountModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div class="p-6 space-y-4 text-xs sm:text-sm">
-                <p class="text-slate-600">Cole a URL do Web App implantado no Google Apps Script (terminada em <strong>/exec</strong>):</p>
-                <input type="url" id="cloudScriptUrlInput" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs" placeholder="https://script.google.com/macros/s/.../exec">
-                <div class="pt-2 flex flex-wrap justify-end gap-2 border-t border-slate-100">
-                    <button type="button" onclick="closeCloudConfigModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">Fechar</button>
-                    <button type="button" onclick="saveCloudUrlOnly()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold">Salvar URL</button>
-                    <button type="button" onclick="saveCloudUrlAndPush()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold">Salvar e Enviar Dados</button>
+            <form id="formAccount" onsubmit="saveAccount(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nome da Conta</label>
+                    <input type="text" id="accName" required placeholder="Ex: Conta Principal, Reserva, Carteira" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
                 </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Saldo Inicial (R$)</label>
+                    <input type="number" step="0.01" id="accInitialBalance" required value="0" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeAccountModal()" class="px-4 py-2 rounded-xl text-xs sm:text-sm text-slate-600 font-semibold hover:bg-slate-100 transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold shadow-md transition">Salvar Conta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL: DEFINIR TETO DE GASTOS                             -->
+    <!-- ========================================================= -->
+    <div id="modalBudget" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+            <div class="bg-slate-900 px-6 py-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-base">Definir Teto de Gastos</h3>
+                <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="formBudget" onsubmit="saveBudget(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria</label>
+                    <select id="budgetCategory" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Limite Mensal (R$)</label>
+                    <input type="number" step="0.01" min="0" id="budgetLimit" required placeholder="Ex: 1200,00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeBudgetModal()" class="px-4 py-2 rounded-xl text-xs sm:text-sm text-slate-600 font-semibold hover:bg-slate-100 transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold shadow-md transition">Salvar Limite</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL: CONFIRMAÇÃO CUSTOMIZADA                            -->
+    <!-- ========================================================= -->
+    <div id="modalConfirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
+            <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="confirmTitle" class="font-bold text-slate-800 text-base">Confirmar ação</h3>
+            <p id="confirmMessage" class="text-xs text-slate-500">Esta ação não poderá ser desfeita.</p>
+            <div class="flex justify-center space-x-3 pt-2">
+                <button type="button" onclick="closeConfirmModal(false)" class="px-4 py-2 rounded-xl text-xs sm:text-sm text-slate-600 font-semibold hover:bg-slate-100 transition">Cancelar</button>
+                <button type="button" onclick="closeConfirmModal(true)" class="px-5 py-2 rounded-xl text-xs sm:text-sm bg-rose-600 hover:bg-rose-700 text-white font-bold transition">Confirmar</button>
             </div>
         </div>
     </div>
 
+    <!-- TOAST NOTIFICATION -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none border border-slate-700">
+        <div id="toastIcon" class="text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
+        <div id="toastMessage" class="text-xs font-semibold">Operação concluída!</div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- JAVASCRIPT DA APLICAÇÃO + CONECTOR GOOGLE SHEETS          -->
+    <!-- ========================================================= -->
     <script>
-        const STORAGE_KEY = 'financontrol_state_v1';
-        const DEFAULT_CATEGORIES = {
-            INCOME: ['Salário', 'Renda Extra', 'Reembolso', 'Investimentos', 'Outros'],
-            EXPENSE: ['Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Educação', 'Lazer', 'Contas Fixas', 'Cartão de Crédito', 'Empréstimos', 'Outros']
-        };
+        // CÓDIGO DO GOOGLE APPS SCRIPT EMBUTIDO PARA CÓPIA RÁPIDA
+        const APPS_SCRIPT_TEMPLATE = `const ABAS = ['Lancamentos', 'Emprestimos', 'Contas', 'Salario', 'Orcamentos'];
 
-        let state = {
-            selectedMonth: new Date().toISOString().slice(0, 7),
-            cloudUrl: '',
-            accounts: [
-                { id: 'acc-default', name: 'Conta Principal', balance: 0 }
-            ],
+function doGet(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const resultado = {};
+
+  ABAS.forEach(nome => {
+    let sheet = ss.getSheetByName(nome);
+    if (!sheet) {
+      sheet = ss.insertSheet(nome);
+      sheet.appendRow(['id', 'dados_json', 'atualizado_em']);
+    }
+    const valores = sheet.getDataRange().getValues();
+    resultado[nome] = [];
+    for (let i = 1; i < valores.length; i++) {
+      if (valores[i][1]) {
+        try {
+          resultado[nome].push(JSON.parse(valores[i][1]));
+        } catch (err) {}
+      }
+    }
+  });
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'ok', dados: resultado }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const payload = JSON.parse(e.postData.contents);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const agora = new Date().toISOString();
+
+  ABAS.forEach(nome => {
+    if (payload[nome] !== undefined) {
+      let sheet = ss.getSheetByName(nome);
+      if (!sheet) sheet = ss.insertSheet(nome);
+      sheet.clearContents();
+      sheet.appendRow(['id', 'dados_json', 'atualizado_em']);
+
+      const lista = Array.isArray(payload[nome]) ? payload[nome] : [payload[nome]];
+      lista.forEach((item, idx) => {
+        const id = item.id || String(idx + 1);
+        sheet.appendRow([id, JSON.stringify(item), agora]);
+      });
+    }
+  });
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'salvo', atualizado_em: agora }))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+        // CATEGORIAS PADRÃO
+        const CATEGORIES = [
+            { id: 'Salário', name: 'Salário Líquido', type: 'INCOME', color: 'bg-emerald-100 text-emerald-800' },
+            { id: 'Investimentos', name: 'Investimentos / Rendimentos', type: 'INCOME', color: 'bg-teal-100 text-teal-800' },
+            { id: 'Outras Receitas', name: 'Outras Receitas', type: 'INCOME', color: 'bg-blue-100 text-blue-800' },
+            { id: 'Moradia', name: 'Moradia / Aluguel / Contas', type: 'EXPENSE', color: 'bg-indigo-100 text-indigo-800' },
+            { id: 'Alimentação', name: 'Alimentação / Supermercado', type: 'EXPENSE', color: 'bg-amber-100 text-amber-800' },
+            { id: 'Transporte', name: 'Transporte / Combustível', type: 'EXPENSE', color: 'bg-sky-100 text-sky-800' },
+            { id: 'Saúde', name: 'Saúde & Farmácia', type: 'EXPENSE', color: 'bg-rose-100 text-rose-800' },
+            { id: 'Lazer', name: 'Lazer & Viagens', type: 'EXPENSE', color: 'bg-purple-100 text-purple-800' },
+            { id: 'Educação', name: 'Educação & Cursos', type: 'EXPENSE', color: 'bg-blue-100 text-blue-800' },
+            { id: 'Cartão de Crédito', name: 'Cartão de Crédito', type: 'EXPENSE', color: 'bg-pink-100 text-pink-800' },
+            { id: 'Empréstimos', name: 'Empréstimos / Parcelas', type: 'EXPENSE', color: 'bg-orange-100 text-orange-800' },
+            { id: 'Outros', name: 'Outros Gastos', type: 'EXPENSE', color: 'bg-slate-100 text-slate-800' }
+        ];
+
+        const STORAGE_KEY_DATA = 'financontrol_cloud_data_v1';
+        const STORAGE_KEY_URL = 'financontrol_sheets_api_url';
+
+        // ESTADO GLOBAL
+        let appState = {
             transactions: [],
             loans: [],
-            budgets: {},
-            salary: {
-                gross: 0,
-                bonus: 0,
-                inss: 0,
-                irrf: 0,
-                otherDed: 0,
+            accounts: [
+                { id: 'acc_1', name: 'Conta Principal', initialBalance: 0 },
+                { id: 'acc_2', name: 'Reserva de Emergência', initialBalance: 0 }
+            ],
+            budgets: [],
+            salaryConfig: {
+                grossSalary: 0,
+                netSalary: 0,
                 payDay: 5,
-                accountId: 'acc-default'
-            }
+                marginPct: 35,
+                accountId: 'acc_1'
+            },
+            selectedMonth: getFormattedMonth(new Date())
         };
 
         let chartCashFlowInstance = null;
         let chartCategoriesInstance = null;
+        let confirmResolver = null;
+        let pushTimeout = null;
 
-        function loadState() {
+        // --- INICIALIZAÇÃO ---
+        window.onload = async function() {
+            document.getElementById('footerYear').innerText = new Date().getFullYear();
+            document.getElementById('appsScriptSourceCode').value = APPS_SCRIPT_TEMPLATE;
+
+            loadFromLocalStorage();
+            initMonthPicker();
+            populateCategoryDropdowns();
+            renderAll();
+
+            // Se houver URL do Google Sheets configurada, sincroniza automaticamente ao abrir
+            const savedUrl = getCloudUrl();
+            if (savedUrl) {
+                await syncNowFromCloud(false);
+            } else {
+                updateCloudBadge('LOCAL');
+            }
+        };
+
+        // --- GERENCIAMENTO DE URL & STATUS DA NUVEM ---
+        function getCloudUrl() {
+            return (localStorage.getItem(STORAGE_KEY_URL) || '').trim();
+        }
+
+        function updateCloudBadge(status, customLabel = null) {
+            const badge = document.getElementById('cloudStatusBadge');
+            const dot = document.getElementById('cloudStatusDot');
+            const text = document.getElementById('cloudStatusText');
+            const syncIcon = document.getElementById('syncIcon');
+
+            if (status === 'SYNCED') {
+                badge.className = 'flex items-center space-x-2 text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+                text.innerText = customLabel || 'Sincronizado com Google Sheets';
+                syncIcon.classList.remove('fa-spin');
+            } else if (status === 'SYNCING') {
+                badge.className = 'flex items-center space-x-2 text-xs font-semibold px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30 animate-pulse-soft';
+                dot.className = 'w-2 h-2 rounded-full bg-sky-400';
+                text.innerText = customLabel || 'Sincronizando...';
+                syncIcon.classList.add('fa-spin');
+            } else if (status === 'ERROR') {
+                badge.className = 'flex items-center space-x-2 text-xs font-semibold px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30';
+                dot.className = 'w-2 h-2 rounded-full bg-rose-400';
+                text.innerText = customLabel || 'Erro na Nuvem (Salvo Local)';
+                syncIcon.classList.remove('fa-spin');
+            } else {
+                badge.className = 'flex items-center space-x-2 text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30';
+                dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                text.innerText = customLabel || 'Modo Local / Sem URL';
+                syncIcon.classList.remove('fa-spin');
+            }
+        }
+
+        // --- PERSISTÊNCIA LOCAL + SINCRONIZAÇÃO AUTOMÁTICA (POST / GET) ---
+        function saveData(triggerCloudPush = true) {
             try {
-                const raw = localStorage.getItem(STORAGE_KEY);
+                localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(appState));
+            } catch (e) {
+                console.error('Falha ao salvar no localStorage:', e);
+            }
+
+            if (triggerCloudPush && getCloudUrl()) {
+                clearTimeout(pushTimeout);
+                pushTimeout = setTimeout(() => {
+                    pushStateToCloud(false);
+                }, 400);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_DATA);
                 if (raw) {
                     const parsed = JSON.parse(raw);
-                    state = {
-                        ...state,
+                    appState = {
+                        ...appState,
                         ...parsed,
-                        salary: { ...state.salary, ...(parsed.salary || {}) },
-                        accounts: Array.isArray(parsed.accounts) && parsed.accounts.length ? parsed.accounts : state.accounts,
-                        transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [],
-                        loans: Array.isArray(parsed.loans) ? parsed.loans : [],
-                        budgets: parsed.budgets && typeof parsed.budgets === 'object' ? parsed.budgets : {}
+                        salaryConfig: {
+                            grossSalary: 0,
+                            netSalary: 0,
+                            payDay: 5,
+                            marginPct: 35,
+                            accountId: 'acc_1',
+                            ...(parsed.salaryConfig || {})
+                        }
                     };
                 }
             } catch (e) {
-                console.error('Erro ao carregar dados locais:', e);
-            }
-            if (!state.selectedMonth) {
-                state.selectedMonth = new Date().toISOString().slice(0, 7);
+                console.error('Erro ao carregar cache local:', e);
             }
         }
 
-        function saveState(pushCloud = false) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-            if (pushCloud && state.cloudUrl) {
-                pushStateToCloud(false);
+        async function pushStateToCloud(showFeedbackToast = false) {
+            const url = getCloudUrl();
+            if (!url) return false;
+
+            updateCloudBadge('SYNCING', 'Enviando para Google Sheets...');
+
+            const payload = {
+                Lancamentos: appState.transactions,
+                Emprestimos: appState.loans,
+                Contas: appState.accounts,
+                Salario: [appState.salaryConfig],
+                Orcamentos: appState.budgets
+            };
+
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                updateCloudBadge('SYNCED');
+                if (showFeedbackToast) {
+                    showToast('Dados enviados para o Google Sheets!');
+                }
+                return true;
+            } catch (err) {
+                console.error('Erro no POST para Google Sheets:', err);
+                updateCloudBadge('ERROR');
+                if (showFeedbackToast) {
+                    showToast('Falha ao enviar para a planilha. Dados mantidos localmente.', 'error');
+                }
+                return false;
             }
         }
 
+        async function syncNowFromCloud(showFeedbackToast = true) {
+            const url = getCloudUrl();
+            if (!url) {
+                updateCloudBadge('LOCAL');
+                if (showFeedbackToast) {
+                    openCloudConfigModal();
+                    showToast('Configure a URL da planilha Google Sheets primeiro.', 'error');
+                }
+                return;
+            }
+
+            updateCloudBadge('SYNCING', 'Sincronizando...');
+
+            try {
+                const response = await fetch(url, { method: 'GET' });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+
+                const json = await response.json();
+                if (json && json.status === 'ok' && json.dados) {
+                    const d = json.dados;
+
+                    const hasRemoteData =
+                        (Array.isArray(d.Lancamentos) && d.Lancamentos.length > 0) ||
+                        (Array.isArray(d.Emprestimos) && d.Emprestimos.length > 0) ||
+                        (Array.isArray(d.Contas) && d.Contas.length > 0) ||
+                        (Array.isArray(d.Salario) && d.Salario.length > 0) ||
+                        (Array.isArray(d.Orcamentos) && d.Orcamentos.length > 0);
+
+                    if (hasRemoteData) {
+                        if (Array.isArray(d.Lancamentos)) appState.transactions = d.Lancamentos;
+                        if (Array.isArray(d.Emprestimos)) appState.loans = d.Emprestimos;
+                        if (Array.isArray(d.Contas) && d.Contas.length > 0) appState.accounts = d.Contas;
+                        if (Array.isArray(d.Orcamentos)) appState.budgets = d.Orcamentos;
+                        if (Array.isArray(d.Salario) && d.Salario.length > 0) {
+                            appState.salaryConfig = {
+                                ...appState.salaryConfig,
+                                ...d.Salario[0]
+                            };
+                        }
+
+                        saveData(false);
+                        populateCategoryDropdowns();
+                        renderAll();
+                    } else {
+                        await pushStateToCloud(false);
+                    }
+
+                    updateCloudBadge('SYNCED');
+                    if (showFeedbackToast) {
+                        showToast('Sincronizado com sucesso com o Google Sheets!');
+                    }
+                } else {
+                    throw new Error('Formato de resposta inesperado');
+                }
+            } catch (err) {
+                console.error('Erro ao ler Google Sheets:', err);
+                updateCloudBadge('ERROR');
+                if (showFeedbackToast) {
+                    showToast('Não foi possível conectar ao Google Sheets. Verifique a URL.', 'error');
+                }
+            }
+        }
+
+        // --- MODAL CONFIGURAR NUVEM ---
+        function openCloudConfigModal() {
+            document.getElementById('cloudScriptUrlInput').value = getCloudUrl();
+            const fb = document.getElementById('cloudTestFeedback');
+            fb.classList.add('hidden');
+            document.getElementById('modalCloudConfig').classList.remove('hidden');
+        }
+
+        function closeCloudConfigModal() {
+            document.getElementById('modalCloudConfig').classList.add('hidden');
+        }
+
+        async function testCloudConnection() {
+            const inputUrl = document.getElementById('cloudScriptUrlInput').value.trim();
+            const fb = document.getElementById('cloudTestFeedback');
+
+            if (!inputUrl || !inputUrl.startsWith('http')) {
+                fb.className = 'p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200';
+                fb.innerHTML = '<i class="fa-solid fa-circle-xmark mr-1"></i> Insira uma URL válida começando com https://script.google.com/...';
+                fb.classList.remove('hidden');
+                return;
+            }
+
+            fb.className = 'p-3 rounded-xl text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200';
+            fb.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Testando comunicação com a planilha...';
+            fb.classList.remove('hidden');
+
+            try {
+                const res = await fetch(inputUrl);
+                const json = await res.json();
+                if (json && json.status === 'ok') {
+                    fb.className = 'p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
+                    fb.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> Conexão estabelecida com sucesso! A planilha respondeu corretamente.';
+                } else {
+                    throw new Error('Resposta inválida');
+                }
+            } catch (err) {
+                fb.className = 'p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200';
+                fb.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Falha na conexão. Verifique se o Web App foi implantado com acesso para "Qualquer pessoa".';
+            }
+        }
+
+        async function saveCloudUrlAndPush() {
+            const inputUrl = document.getElementById('cloudScriptUrlInput').value.trim();
+            if (!inputUrl || !inputUrl.startsWith('http')) {
+                showToast('Informe uma URL válida do Google Apps Script.', 'error');
+                return;
+            }
+            localStorage.setItem(STORAGE_KEY_URL, inputUrl);
+            closeCloudConfigModal();
+            await pushStateToCloud(true);
+        }
+
+        async function saveCloudUrlAndPull() {
+            const inputUrl = document.getElementById('cloudScriptUrlInput').value.trim();
+            if (!inputUrl || !inputUrl.startsWith('http')) {
+                showToast('Informe uma URL válida do Google Apps Script.', 'error');
+                return;
+            }
+            localStorage.setItem(STORAGE_KEY_URL, inputUrl);
+            closeCloudConfigModal();
+            await syncNowFromCloud(true);
+        }
+
+        function clearCloudUrl() {
+            localStorage.removeItem(STORAGE_KEY_URL);
+            document.getElementById('cloudScriptUrlInput').value = '';
+            updateCloudBadge('LOCAL');
+            closeCloudConfigModal();
+            showToast('Planilha desconectada. Operando em Modo Local.');
+        }
+
+        function copyAppsScriptCode() {
+            const textarea = document.getElementById('appsScriptSourceCode');
+            textarea.classList.remove('sr-only');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast('Código do Google Apps Script copiado!');
+            } catch (e) {
+                showToast('Não foi possível copiar automaticamente.', 'error');
+            }
+            textarea.classList.add('sr-only');
+        }
+
+        // --- UTILITÁRIOS DE DATA E MOEDA ---
         function formatBRL(val) {
-            const num = Number(val) || 0;
-            return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
         }
 
-        function switchTab(tabName) {
+        function formatDateBR(dateString) {
+            if (!dateString) return '-';
+            const parts = dateString.split('-');
+            if (parts.length !== 3) return dateString;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function getFormattedMonth(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            return `${y}-${m}`;
+        }
+
+        function initMonthPicker() {
+            document.getElementById('globalMonthPicker').value = appState.selectedMonth;
+        }
+
+        function onMonthPickerChange(val) {
+            if (!val) return;
+            appState.selectedMonth = val;
+            renderAll();
+        }
+
+        function changeMonth(delta) {
+            const [y, m] = appState.selectedMonth.split('-').map(Number);
+            const date = new Date(y, m - 1 + delta, 1);
+            appState.selectedMonth = getFormattedMonth(date);
+            document.getElementById('globalMonthPicker').value = appState.selectedMonth;
+            renderAll();
+        }
+
+        // --- NAVEGAÇÃO ENTRE ABAS ---
+        function switchTab(tabId) {
             document.querySelectorAll('section[id^="tab-"]').forEach(sec => sec.classList.add('hidden'));
-            const targetSec = document.getElementById('tab-' + tabName);
-            if (targetSec) targetSec.classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
 
             document.querySelectorAll('.nav-tab').forEach(btn => {
-                btn.classList.remove('text-emerald-400', 'font-bold', 'border-b-2', 'border-emerald-400');
-                btn.classList.add('text-slate-400', 'font-medium', 'border-b-2', 'border-transparent');
+                btn.classList.remove('text-emerald-400', 'font-bold', 'border-emerald-400');
+                btn.classList.add('text-slate-400', 'font-medium', 'border-transparent');
             });
-            const activeBtn = document.getElementById('tab-btn-' + tabName);
+
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
             if (activeBtn) {
                 activeBtn.classList.remove('text-slate-400', 'font-medium', 'border-transparent');
                 activeBtn.classList.add('text-emerald-400', 'font-bold', 'border-emerald-400');
             }
 
-            renderAll();
-        }
-
-        function changeMonth(delta) {
-            const [y, m] = state.selectedMonth.split('-').map(Number);
-            const d = new Date(y, m - 1 + delta, 1);
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            state.selectedMonth = `${yyyy}-${mm}`;
-            document.getElementById('globalMonthPicker').value = state.selectedMonth;
-            saveState(false);
-            renderAll();
-        }
-
-        function onMonthPickerChange(value) {
-            if (!value) return;
-            state.selectedMonth = value;
-            saveState(false);
-            renderAll();
-        }
-        function renderAll() {
-            const picker = document.getElementById('globalMonthPicker');
-            if (picker) picker.value = state.selectedMonth;
-
-            updateCloudStatusBadge();
-            renderDashboard();
-            renderTransactions();
-            renderSalaryTab();
-            renderLoansTab();
-            renderAccountsTab();
-            renderAlerts();
-        }
-
-        function getMonthTransactions() {
-            return state.transactions.filter(t => (t.date || '').startsWith(state.selectedMonth));
-        }
-
-        function computeEffectiveBalance() {
-            const base = state.accounts.reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
-            const paidDelta = state.transactions
-                .filter(t => t.status === 'PAID')
-                .reduce((acc, t) => acc + (t.type === 'INCOME' ? Number(t.amount) : -Number(t.amount)), 0);
-            return base + paidDelta;
-        }
-
-        function renderDashboard() {
-            const monthTx = getMonthTransactions();
-
-            const incRealized = monthTx.filter(t => t.type === 'INCOME' && t.status === 'PAID').reduce((s, t) => s + Number(t.amount), 0);
-            const incPredicted = monthTx.filter(t => t.type === 'INCOME').reduce((s, t) => s + Number(t.amount), 0);
-
-            const expRealized = monthTx.filter(t => t.type === 'EXPENSE' && t.status === 'PAID').reduce((s, t) => s + Number(t.amount), 0);
-            const expPredicted = monthTx.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0);
-
-            const pendingInc = monthTx.filter(t => t.type === 'INCOME' && t.status === 'PENDING').reduce((s, t) => s + Number(t.amount), 0);
-            const pendingExp = monthTx.filter(t => t.type === 'EXPENSE' && t.status === 'PENDING').reduce((s, t) => s + Number(t.amount), 0);
-
-            const currentBalance = computeEffectiveBalance();
-            const projectedBalance = currentBalance + pendingInc - pendingExp;
-
-            const activeLoans = state.loans.filter(l => Number(l.remainingDebt) > 0 || Number(l.paidInstallments) < Number(l.totalInstallments));
-            const totalDebt = activeLoans.reduce((s, l) => s + (Number(l.remainingDebt) || 0), 0);
-            const monthlyLoanInstallments = activeLoans.reduce((s, l) => s + (Number(l.installment) || 0), 0);
-
-            document.getElementById('cardCurrentBalance').textContent = formatBRL(currentBalance);
-            document.getElementById('cardIncomeRealized').textContent = formatBRL(incRealized);
-            document.getElementById('cardIncomePredicted').textContent = formatBRL(incPredicted);
-            document.getElementById('cardExpenseRealized').textContent = formatBRL(expRealized);
-            document.getElementById('cardExpensePredicted').textContent = formatBRL(expPredicted);
-            document.getElementById('cardProjectedBalance').textContent = formatBRL(projectedBalance);
-            document.getElementById('cardLoansTotalDebt').textContent = formatBRL(totalDebt);
-            document.getElementById('cardLoansMonthlySummary').textContent = `${activeLoans.length} ativo(s) • ${formatBRL(monthlyLoanInstallments)}/mês`;
-
-            const netSal = getNetSalary();
-            const consignadoUsed = activeLoans
-                .filter(l => l.type === 'CONSIGNADO')
-                .reduce((s, l) => s + (Number(l.installment) || 0), 0);
-            const marginTotal = netSal * 0.35;
-            const marginAvail = Math.max(0, marginTotal - consignadoUsed);
-
-            document.getElementById('dashMarginBadge').textContent = `Margem livre: ${formatBRL(marginAvail)}`;
-            document.getElementById('dashSalaryText').textContent = netSal > 0
-                ? `Salário líquido cadastrado: ${formatBRL(netSal)} • Consignados em folha: ${formatBRL(consignadoUsed)} de ${formatBRL(marginTotal)}.`
-                : 'Cadastre seu salário líquido e controle seus empréstimos descontados em folha.';
-
-            renderCharts(incRealized, expRealized, monthTx);
-            renderUpcomingTable(monthTx);
-        }
-
-        function renderCharts(incRealized, expRealized, monthTx) {
-            const ctxFlow = document.getElementById('chartCashFlow');
-            if (ctxFlow) {
-                if (chartCashFlowInstance) chartCashFlowInstance.destroy();
-                chartCashFlowInstance = new Chart(ctxFlow, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Entradas Pagas', 'Saídas Pagas'],
-                        datasets: [{
-                            label: 'Valor (R$)',
-                            data: [incRealized, expRealized],
-                            backgroundColor: ['#10b981', '#f43f5e'],
-                            borderRadius: 8
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } }
-                    }
-                });
-            }
-
-            const ctxCat = document.getElementById('chartCategories');
-            if (ctxCat) {
-                if (chartCategoriesInstance) chartCategoriesInstance.destroy();
-                const byCat = {};
-                monthTx.filter(t => t.type === 'EXPENSE').forEach(t => {
-                    const cat = t.category || 'Outros';
-                    byCat[cat] = (byCat[cat] || 0) + Number(t.amount);
-                });
-                const labels = Object.keys(byCat);
-                const values = Object.values(byCat);
-                chartCategoriesInstance = new Chart(ctxCat, {
-                    type: 'doughnut',
-                    data: {
-                        labels: labels.length ? labels : ['Sem despesas'],
-                        datasets: [{
-                            data: values.length ? values : [1],
-                            backgroundColor: labels.length
-                                ? ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#14b8a6']
-                                : ['#e2e8f0']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom' } }
-                    }
-                });
+            if (tabId === 'dashboard') {
+                setTimeout(renderCharts, 80);
             }
         }
 
-        function renderUpcomingTable(monthTx) {
-            const tbody = document.getElementById('dashboardUpcomingTable');
-            if (!tbody) return;
-            const pending = monthTx
-                .filter(t => t.status === 'PENDING')
-                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+        // --- SELETORES DE CATEGORIA E CONTA ---
+        function populateCategoryDropdowns() {
+            const txCatSelect = document.getElementById('txCategory');
+            const filterCatSelect = document.getElementById('filterCategory');
+            const budgetCatSelect = document.getElementById('budgetCategory');
 
-            if (!pending.length) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400 text-xs">Nenhuma pendência neste mês.</td></tr>`;
-                return;
-            }
+            txCatSelect.innerHTML = '';
+            filterCatSelect.innerHTML = '<option value="ALL">Categoria: Todas</option>';
+            budgetCatSelect.innerHTML = '';
 
-            tbody.innerHTML = pending.slice(0, 6).map(t => `
-                <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-3 font-medium">${t.date || '-'}</td>
-                    <td class="py-3 px-3 font-semibold text-slate-800">${escapeHtml(t.description)}</td>
-                    <td class="py-3 px-3 text-slate-500">${escapeHtml(t.category || 'Outros')}</td>
-                    <td class="py-3 px-3 font-bold ${t.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}">${t.type === 'INCOME' ? '+' : '-'} ${formatBRL(t.amount)}</td>
-                    <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Pendente</span></td>
-                    <td class="py-3 px-3 text-right">
-                        <button onclick="toggleTxStatus('${t.id}')" class="text-xs font-bold text-emerald-600 hover:text-emerald-800">Confirmar</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
+            CATEGORIES.forEach(cat => {
+                const opt1 = document.createElement('option');
+                opt1.value = cat.id;
+                opt1.textContent = cat.name;
+                txCatSelect.appendChild(opt1);
 
-        function renderTransactions() {
-            const search = (document.getElementById('filterSearch')?.value || '').toLowerCase().trim();
-            const typeFilter = document.getElementById('filterType')?.value || 'ALL';
-            const catFilter = document.getElementById('filterCategory')?.value || 'ALL';
-            const statusFilter = document.getElementById('filterStatus')?.value || 'ALL';
+                const opt2 = document.createElement('option');
+                opt2.value = cat.id;
+                opt2.textContent = cat.name;
+                filterCatSelect.appendChild(opt2);
 
-            const catSelect = document.getElementById('filterCategory');
-            if (catSelect) {
-                const currentVal = catSelect.value;
-                const allCats = Array.from(new Set([...DEFAULT_CATEGORIES.INCOME, ...DEFAULT_CATEGORIES.EXPENSE, ...state.transactions.map(t => t.category).filter(Boolean)]));
-                catSelect.innerHTML = `<option value="ALL">Todas as Categorias</option>` + allCats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-                if (currentVal && Array.from(catSelect.options).some(o => o.value === currentVal)) {
-                    catSelect.value = currentVal;
+                if (cat.type === 'EXPENSE') {
+                    const opt3 = document.createElement('option');
+                    opt3.value = cat.id;
+                    opt3.textContent = cat.name;
+                    budgetCatSelect.appendChild(opt3);
                 }
-            }
-
-            const filtered = getMonthTransactions().filter(t => {
-                if (search && !(t.description || '').toLowerCase().includes(search)) return false;
-                if (typeFilter !== 'ALL' && t.type !== typeFilter) return false;
-                if (catFilter !== 'ALL' && t.category !== catFilter) return false;
-                if (statusFilter !== 'ALL' && t.status !== statusFilter) return false;
-                return true;
             });
 
-            const tbody = document.getElementById('transactionsTableBody');
-            const emptyState = document.getElementById('transactionsEmptyState');
-
-            if (!filtered.length) {
-                tbody.innerHTML = '';
-                emptyState?.classList.remove('hidden');
-                return;
-            }
-            emptyState?.classList.add('hidden');
-
-            const accMap = Object.fromEntries(state.accounts.map(a => [a.id, a.name]));
-
-            tbody.innerHTML = filtered.map(t => `
-                <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4 whitespace-nowrap text-slate-600">${t.date || '-'}</td>
-                    <td class="py-3 px-4 font-semibold text-slate-800">${escapeHtml(t.description)}</td>
-                    <td class="py-3 px-4 text-slate-500">${escapeHtml(t.category || 'Outros')}</td>
-                    <td class="py-3 px-4 text-slate-500">${escapeHtml(accMap[t.accountId] || 'Conta Principal')}</td>
-                    <td class="py-3 px-4 font-bold whitespace-nowrap ${t.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}">${t.type === 'INCOME' ? '+' : '-'} ${formatBRL(t.amount)}</td>
-                    <td class="py-3 px-4">
-                        <button onclick="toggleTxStatus('${t.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold ${t.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                            ${t.status === 'PAID' ? 'Pago / Efetivado' : 'Pendente'}
-                        </button>
-                    </td>
-                    <td class="py-3 px-4 text-right whitespace-nowrap space-x-2">
-                        <button onclick="editTransaction('${t.id}')" class="text-indigo-600 hover:text-indigo-800" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteTransaction('${t.id}')" class="text-rose-600 hover:text-rose-800" title="Excluir"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            updateAccountDropdowns();
         }
 
-        function openTransactionModal(tx = null) {
-            populateTxAccounts();
-            document.getElementById('txId').value = tx ? tx.id : '';
-            document.getElementById('txType').value = tx ? tx.type : 'EXPENSE';
-            populateTxCategories(tx ? tx.category : null);
-            document.getElementById('txAmount').value = tx ? tx.amount : '';
-            document.getElementById('txDescription').value = tx ? tx.description : '';
-            document.getElementById('txAccountId').value = tx && tx.accountId ? tx.accountId : (state.accounts[0]?.id || 'acc-default');
-            document.getElementById('txDate').value = tx ? tx.date : `${state.selectedMonth}-${String(new Date().getDate()).padStart(2, '0')}`;
-            document.getElementById('txStatus').value = tx ? tx.status : 'PAID';
-            document.getElementById('txModalTitle').innerHTML = `<i class="fa-solid fa-plus-circle text-emerald-400 mr-2"></i> ${tx ? 'Editar Lançamento' : 'Novo Lançamento'}`;
+        function updateAccountDropdowns() {
+            const txAccountSelect = document.getElementById('txAccount');
+            const salAccountSelect = document.getElementById('salAccountId');
 
-            const modal = document.getElementById('transactionModal');
+            txAccountSelect.innerHTML = '';
+            salAccountSelect.innerHTML = '';
+
+            appState.accounts.forEach(acc => {
+                const opt1 = document.createElement('option');
+                opt1.value = acc.id;
+                opt1.textContent = acc.name;
+                txAccountSelect.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = acc.id;
+                opt2.textContent = acc.name;
+                salAccountSelect.appendChild(opt2);
+            });
+
+            if (appState.salaryConfig && appState.salaryConfig.accountId) {
+                salAccountSelect.value = appState.salaryConfig.accountId;
+            }
+        }
+
+        // --- RENDERIZAÇÃO GERAL ---
+        function renderAll() {
+            renderAlerts();
+            renderDashboardCards();
+            renderDashboardUpcomingTable();
+            renderTransactions();
+            renderSalarySection();
+            renderLoans();
+            renderAccounts();
+            renderBudgets();
+            renderCharts();
+        }
+
+        // --- ALERTAS DE VENCIMENTO ---
+        function renderAlerts() {
+            const container = document.getElementById('alertsContainer');
+            container.innerHTML = '';
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const overdueOrToday = appState.transactions.filter(t => t.status === 'PENDING' && t.dueDate <= todayStr);
+
+            if (overdueOrToday.length > 0) {
+                container.classList.remove('hidden');
+                const overdueCount = overdueOrToday.filter(t => t.dueDate < todayStr).length;
+                const todayCount = overdueOrToday.filter(t => t.dueDate === todayStr).length;
+
+                let msg = 'Alerta de Vencimento: ';
+                if (overdueCount > 0) msg += `<b>${overdueCount}</b> conta(s) em atraso! `;
+                if (todayCount > 0) msg += `<b>${todayCount}</b> conta(s) vencendo HOJE!`;
+
+                const alertEl = document.createElement('div');
+                alertEl.className = 'bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-2xl text-xs sm:text-sm flex items-center justify-between shadow-sm';
+                alertEl.innerHTML = `
+                    <div class="flex items-center space-x-2.5">
+                        <i class="fa-solid fa-bell text-amber-600 text-base"></i>
+                        <span>${msg}</span>
+                    </div>
+                    <button onclick="switchTab('transactions')" class="font-bold underline text-amber-950 text-xs whitespace-nowrap ml-2">Ver Pendências</button>
+                `;
+                container.appendChild(alertEl);
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        // --- DASHBOARD CARDS ---
+        function renderDashboardCards() {
+            const currentMonth = appState.selectedMonth;
+
+            const totalAccountsInitial = appState.accounts.reduce((sum, a) => sum + (Number(a.initialBalance) || 0), 0);
+            const totalCompletedIncome = appState.transactions
+                .filter(t => t.status === 'COMPLETED' && t.type === 'INCOME')
+                .reduce((sum, t) => sum + Number(t.amount), 0);
+            const totalCompletedExpense = appState.transactions
+                .filter(t => t.status === 'COMPLETED' && t.type === 'EXPENSE')
+                .reduce((sum, t) => sum + Number(t.amount), 0);
+
+            const currentBalance = totalAccountsInitial + totalCompletedIncome - totalCompletedExpense;
+            document.getElementById('cardCurrentBalance').innerText = formatBRL(currentBalance);
+
+            const monthTx = appState.transactions.filter(t => (t.dueDate || '').startsWith(currentMonth));
+
+            const incomeRealized = monthTx.filter(t => t.type === 'INCOME' && t.status === 'COMPLETED').reduce((s, t) => s + Number(t.amount), 0);
+            const incomePredicted = monthTx.filter(t => t.type === 'INCOME').reduce((s, t) => s + Number(t.amount), 0);
+
+            const expenseRealized = monthTx.filter(t => t.type === 'EXPENSE' && t.status === 'COMPLETED').reduce((s, t) => s + Number(t.amount), 0);
+            const expensePredicted = monthTx.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0);
+
+            document.getElementById('cardIncomeRealized').innerText = formatBRL(incomeRealized);
+            document.getElementById('cardIncomePredicted').innerText = formatBRL(incomePredicted);
+
+            document.getElementById('cardExpenseRealized').innerText = formatBRL(expenseRealized);
+            document.getElementById('cardExpensePredicted').innerText = formatBRL(expensePredicted);
+
+            const pendingIncomeMonth = monthTx.filter(t => t.type === 'INCOME' && t.status === 'PENDING').reduce((s, t) => s + Number(t.amount), 0);
+            const pendingExpenseMonth = monthTx.filter(t => t.type === 'EXPENSE' && t.status === 'PENDING').reduce((s, t) => s + Number(t.amount), 0);
+            const projectedBalance = currentBalance + pendingIncomeMonth - pendingExpenseMonth;
+
+            document.getElementById('cardProjectedBalance').innerText = formatBRL(projectedBalance);
+
+            let totalDebt = 0;
+            let totalConsignedMonthly = 0;
+            appState.loans.forEach(l => {
+                const rem = Math.max(0, (Number(l.installments) || 1) - (Number(l.paidInstallments) || 0));
+                if (rem > 0 && (l.type === 'CONSIGNED' || l.type === 'TAKEN')) {
+                    totalDebt += rem * (Number(l.monthlyInstallment) || 0);
+                    if (l.type === 'CONSIGNED') totalConsignedMonthly += Number(l.monthlyInstallment) || 0;
+                }
+            });
+
+            document.getElementById('cardLoansTotalDebt').innerText = formatBRL(totalDebt);
+            document.getElementById('cardLoansMonthlySummary').innerText = `Consignados: ${formatBRL(totalConsignedMonthly)}/mês`;
+
+            const salNet = appState.salaryConfig.netSalary || 0;
+            if (salNet > 0) {
+                document.getElementById('dashSalaryText').innerHTML = `Salário Líquido cadastrado: <b>${formatBRL(salNet)}</b> | Descontos consignados em folha: <b>${formatBRL(totalConsignedMonthly)}/mês</b>.`;
+            } else {
+                document.getElementById('dashSalaryText').innerText = 'Cadastre seu salário líquido e controle seus empréstimos descontados em folha.';
+            }
+        }
+
+        function renderDashboardUpcomingTable() {
+            const tbody = document.getElementById('dashboardUpcomingTable');
+            tbody.innerHTML = '';
+
+            const currentMonth = appState.selectedMonth;
+            const monthTx = appState.transactions
+                .filter(t => (t.dueDate || '').startsWith(currentMonth) && t.status === 'PENDING')
+                .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+                .slice(0, 6);
+
+            if (monthTx.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-5 text-center text-slate-400">Nenhuma conta prevista/pendente para este mês.</td></tr>`;
+                return;
+            }
+
+            monthTx.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+                const isExpense = t.type === 'EXPENSE';
+                const catObj = CATEGORIES.find(c => c.id === t.category) || { name: t.category, color: 'bg-slate-100 text-slate-700' };
+
+                tr.innerHTML = `
+                    <td class="py-3 px-3 font-semibold text-slate-700 whitespace-nowrap">${formatDateBR(t.dueDate)}</td>
+                    <td class="py-3 px-3 font-bold text-slate-800">${t.description}</td>
+                    <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-md text-[11px] font-semibold ${catObj.color}">${catObj.name}</span></td>
+                    <td class="py-3 px-3 font-extrabold whitespace-nowrap ${isExpense ? 'text-rose-600' : 'text-emerald-600'}">${formatBRL(t.amount)}</td>
+                    <td class="py-3 px-3"><span class="px-2.5 py-0.5 rounded-full text-[11px] bg-amber-100 text-amber-800 font-bold">Previsto</span></td>
+                    <td class="py-3 px-3 text-right">
+                        <button onclick="toggleTransactionStatus('${t.id}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-xl font-bold text-xs transition">
+                            <i class="fa-solid fa-check mr-1"></i> Efetivar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- LANÇAMENTOS ---
+        function renderTransactions() {
+            const tbody = document.getElementById('transactionsTableBody');
+            tbody.innerHTML = '';
+
+            const search = document.getElementById('filterSearch').value.toLowerCase();
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterType = document.getElementById('filterType').value;
+            const filterCategory = document.getElementById('filterCategory').value;
+            const currentMonth = appState.selectedMonth;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const filtered = appState.transactions.filter(t => {
+                if (!(t.dueDate || '').startsWith(currentMonth)) return false;
+                if (search && !t.description.toLowerCase().includes(search)) return false;
+                if (filterType !== 'ALL' && t.type !== filterType) return false;
+                if (filterCategory !== 'ALL' && t.category !== filterCategory) return false;
+                if (filterStatus === 'PENDING' && t.status !== 'PENDING') return false;
+                if (filterStatus === 'COMPLETED' && t.status !== 'COMPLETED') return false;
+                if (filterStatus === 'OVERDUE' && !(t.status === 'PENDING' && t.dueDate < todayStr)) return false;
+                return true;
+            }).sort((a, b) => b.dueDate.localeCompare(a.dueDate));
+
+            let totalIncome = 0;
+            let totalExpense = 0;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">Nenhum lançamento encontrado para os filtros aplicados.</td></tr>`;
+            } else {
+                filtered.forEach(t => {
+                    if (t.type === 'INCOME') totalIncome += Number(t.amount);
+                    if (t.type === 'EXPENSE') totalExpense += Number(t.amount);
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition';
+                    const isExpense = t.type === 'EXPENSE';
+                    const catObj = CATEGORIES.find(c => c.id === t.category) || { name: t.category, color: 'bg-slate-100 text-slate-700' };
+                    const accObj = appState.accounts.find(a => a.id === t.accountId) || { name: 'Conta' };
+
+                    let statusBadge = '';
+                    if (t.status === 'COMPLETED') {
+                        statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] bg-emerald-100 text-emerald-800 font-bold inline-flex items-center"><i class="fa-solid fa-check text-[9px] mr-1"></i> ${isExpense ? 'Pago' : 'Recebido'}</span>`;
+                    } else if (t.dueDate < todayStr) {
+                        statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] bg-rose-100 text-rose-800 font-bold inline-flex items-center"><i class="fa-solid fa-exclamation text-[9px] mr-1"></i> Atrasado</span>`;
+                    } else {
+                        statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] bg-amber-100 text-amber-800 font-bold inline-flex items-center"><i class="fa-regular fa-clock text-[9px] mr-1"></i> Previsto</span>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td class="py-3.5 px-4">${statusBadge}</td>
+                        <td class="py-3.5 px-4 font-semibold text-slate-700 whitespace-nowrap">${formatDateBR(t.dueDate)}</td>
+                        <td class="py-3.5 px-4">
+                            <div class="font-bold text-slate-800">${t.description}</div>
+                            ${t.installmentInfo ? `<div class="text-[11px] text-slate-400">${t.installmentInfo}</div>` : ''}
+                        </td>
+                        <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg text-xs font-semibold ${catObj.color}">${catObj.name}</span></td>
+                        <td class="py-3.5 px-4 text-slate-600 text-xs font-medium">${accObj.name}</td>
+                        <td class="py-3.5 px-4 text-right font-extrabold whitespace-nowrap ${isExpense ? 'text-rose-600' : 'text-emerald-600'}">
+                            ${isExpense ? '-' : '+'} ${formatBRL(t.amount)}
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                            <div class="flex items-center justify-center space-x-1.5">
+                                <button onclick="toggleTransactionStatus('${t.id}')" title="${t.status === 'COMPLETED' ? 'Reverter para Previsto' : 'Marcar como Efetivado'}" class="p-2 hover:bg-slate-200 rounded-xl transition">
+                                    <i class="fa-solid ${t.status === 'COMPLETED' ? 'fa-rotate-left text-amber-600' : 'fa-check text-emerald-600'}"></i>
+                                </button>
+                                <button onclick="openTransactionModal('${t.id}')" title="Editar" class="p-2 hover:bg-slate-200 rounded-xl transition">
+                                    <i class="fa-solid fa-pen text-indigo-600"></i>
+                                </button>
+                                <button onclick="deleteTransaction('${t.id}')" title="Excluir" class="p-2 hover:bg-slate-200 rounded-xl transition">
+                                    <i class="fa-solid fa-trash text-rose-600"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('filteredCount').innerText = filtered.length;
+            document.getElementById('filteredIncome').innerText = formatBRL(totalIncome);
+            document.getElementById('filteredExpense').innerText = formatBRL(totalExpense);
+        }
+
+        function openTransactionModal(editId = null) {
+            const modal = document.getElementById('modalTransaction');
+            const form = document.getElementById('formTransaction');
+            form.reset();
+            document.getElementById('txId').value = '';
+            document.getElementById('txDueDate').value = new Date().toISOString().split('T')[0];
+
+            if (editId) {
+                const tx = appState.transactions.find(t => t.id === editId);
+                if (tx) {
+                    document.getElementById('modalTxTitle').innerText = 'Editar Lançamento';
+                    document.getElementById('txId').value = tx.id;
+                    document.querySelector(`input[name="txType"][value="${tx.type}"]`).checked = true;
+                    document.getElementById('txDescription').value = tx.description;
+                    document.getElementById('txAmount').value = tx.amount;
+                    document.getElementById('txDueDate').value = tx.dueDate;
+                    document.getElementById('txCategory').value = tx.category;
+                    document.getElementById('txAccount').value = tx.accountId;
+                    document.getElementById('txStatus').value = tx.status;
+                    document.getElementById('repeatSection').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('modalTxTitle').innerText = 'Novo Lançamento';
+                document.getElementById('repeatSection').classList.remove('hidden');
+                toggleRepeatOptions();
+            }
+
             modal.classList.remove('hidden');
-            modal.classList.add('flex');
         }
 
         function closeTransactionModal() {
-            const modal = document.getElementById('transactionModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById('modalTransaction').classList.add('hidden');
         }
 
-        function populateTxCategories(selected = null) {
-            const type = document.getElementById('txType').value;
-            const sel = document.getElementById('txCategory');
-            const list = DEFAULT_CATEGORIES[type] || DEFAULT_CATEGORIES.EXPENSE;
-            sel.innerHTML = list.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-            if (selected && list.includes(selected)) sel.value = selected;
-        }
+        function toggleTxTypeUI() {}
 
-        function populateTxAccounts() {
-            const sel = document.getElementById('txAccountId');
-            sel.innerHTML = state.accounts.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join('');
+        function toggleRepeatOptions() {
+            const checked = document.querySelector('input[name="txRepeat"]:checked');
+            const val = checked ? checked.value : 'SINGLE';
+            const instDiv = document.getElementById('installmentOptions');
+            if (val === 'INSTALLMENT') instDiv.classList.remove('hidden');
+            else instDiv.classList.add('hidden');
         }
 
         function saveTransaction(e) {
             e.preventDefault();
-            const id = document.getElementById('txId').value;
-            const item = {
-                id: id || ('tx-' + Date.now()),
-                type: document.getElementById('txType').value,
-                amount: Number(document.getElementById('txAmount').value) || 0,
-                description: document.getElementById('txDescription').value.trim(),
-                category: document.getElementById('txCategory').value,
-                accountId: document.getElementById('txAccountId').value,
-                date: document.getElementById('txDate').value,
-                status: document.getElementById('txStatus').value
-            };
 
-            if (id) {
-                const idx = state.transactions.findIndex(t => t.id === id);
-                if (idx >= 0) state.transactions[idx] = item;
+            const txId = document.getElementById('txId').value;
+            const type = document.querySelector('input[name="txType"]:checked').value;
+            const description = document.getElementById('txDescription').value.trim();
+            const amount = parseFloat(document.getElementById('txAmount').value);
+            const dueDate = document.getElementById('txDueDate').value;
+            const category = document.getElementById('txCategory').value;
+            const accountId = document.getElementById('txAccount').value;
+            const status = document.getElementById('txStatus').value;
+            const repeatType = document.querySelector('input[name="txRepeat"]:checked')?.value || 'SINGLE';
+            const installmentsCount = parseInt(document.getElementById('txInstallmentsCount').value) || 2;
+
+            if (txId) {
+                const index = appState.transactions.findIndex(t => t.id === txId);
+                if (index !== -1) {
+                    appState.transactions[index] = {
+                        ...appState.transactions[index],
+                        type, description, amount, dueDate, category, accountId, status
+                    };
+                }
             } else {
-                state.transactions.unshift(item);
+                if (repeatType === 'SINGLE') {
+                    appState.transactions.push({
+                        id: 'tx_' + Date.now(),
+                        type, description, amount, dueDate, category, accountId, status
+                    });
+                } else if (repeatType === 'INSTALLMENT') {
+                    const installmentValue = parseFloat((amount / installmentsCount).toFixed(2));
+                    const baseDate = new Date(dueDate + 'T00:00:00');
+
+                    for (let i = 0; i < installmentsCount; i++) {
+                        const nextDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, baseDate.getDate());
+                        const dateStr = nextDate.toISOString().split('T')[0];
+
+                        appState.transactions.push({
+                            id: 'tx_' + Date.now() + '_' + i,
+                            type,
+                            description: `${description} (${i + 1}/${installmentsCount})`,
+                            amount: installmentValue,
+                            dueDate: dateStr,
+                            category,
+                            accountId,
+                            status: i === 0 ? status : 'PENDING',
+                            installmentInfo: `Parcela ${i + 1} de ${installmentsCount}`
+                        });
+                    }
+                } else if (repeatType === 'RECURRING') {
+                    const baseDate = new Date(dueDate + 'T00:00:00');
+                    for (let i = 0; i < 12; i++) {
+                        const nextDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, baseDate.getDate());
+                        const dateStr = nextDate.toISOString().split('T')[0];
+
+                        appState.transactions.push({
+                            id: 'tx_' + Date.now() + '_rec_' + i,
+                            type,
+                            description: `${description} [Fixo]`,
+                            amount,
+                            dueDate: dateStr,
+                            category,
+                            accountId,
+                            status: i === 0 ? status : 'PENDING',
+                            installmentInfo: 'Fixo Mensal'
+                        });
+                    }
+                }
             }
 
-            saveState(true);
+            saveData(true);
             closeTransactionModal();
             renderAll();
+            showToast('Lançamento salvo com sucesso!');
         }
 
-        function editTransaction(id) {
-            const tx = state.transactions.find(t => t.id === id);
-            if (tx) openTransactionModal(tx);
+        function toggleTransactionStatus(id) {
+            const tx = appState.transactions.find(t => t.id === id);
+            if (tx) {
+                tx.status = tx.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+                saveData(true);
+                renderAll();
+                showToast(`Marcado como ${tx.status === 'COMPLETED' ? 'Efetivado' : 'Previsto'}.`);
+            }
         }
 
-        function toggleTxStatus(id) {
-            const tx = state.transactions.find(t => t.id === id);
-            if (!tx) return;
-            tx.status = tx.status === 'PAID' ? 'PENDING' : 'PAID';
-            saveState(true);
+        async function deleteTransaction(id) {
+            const ok = await showConfirmModal('Excluir Lançamento', 'Deseja realmente remover este lançamento?');
+            if (ok) {
+                appState.transactions = appState.transactions.filter(t => t.id !== id);
+                saveData(true);
+                renderAll();
+                showToast('Lançamento excluído.');
+            }
+        }
+
+        // --- MÓDULO SALÁRIO & HOLERITE ---
+        function renderSalarySection() {
+            const conf = appState.salaryConfig;
+            document.getElementById('salGross').value = conf.grossSalary || '';
+            document.getElementById('salNet').value = conf.netSalary || '';
+            document.getElementById('salDay').value = conf.payDay || 5;
+            document.getElementById('salMarginPct').value = conf.marginPct || 35;
+
+            const activeConsigned = appState.loans.filter(l => l.type === 'CONSIGNED' && (Number(l.paidInstallments) < Number(l.installments)));
+            const totalConsignedMonthly = activeConsigned.reduce((sum, l) => sum + (Number(l.monthlyInstallment) || 0), 0);
+
+            const baseSalaryForMargin = conf.grossSalary > 0 ? conf.grossSalary : (conf.netSalary + totalConsignedMonthly);
+            const marginLimit = baseSalaryForMargin * ((conf.marginPct || 35) / 100);
+            const marginUsedPct = marginLimit > 0 ? Math.min(100, Math.round((totalConsignedMonthly / marginLimit) * 100)) : 0;
+            const marginFree = Math.max(0, marginLimit - totalConsignedMonthly);
+
+            document.getElementById('salMarginText').innerText = `${formatBRL(totalConsignedMonthly)} / ${formatBRL(marginLimit)}`;
+            document.getElementById('salMarginBar').style.width = `${marginUsedPct}%`;
+            document.getElementById('salMarginUsedPct').innerText = `${marginUsedPct}%`;
+            document.getElementById('salMarginFree').innerText = formatBRL(marginFree);
+
+            const bar = document.getElementById('salMarginBar');
+            if (marginUsedPct > 90) bar.className = 'h-3.5 bg-rose-600 rounded-full transition-all duration-500';
+            else if (marginUsedPct > 70) bar.className = 'h-3.5 bg-amber-500 rounded-full transition-all duration-500';
+            else bar.className = 'h-3.5 bg-purple-600 rounded-full transition-all duration-500';
+
+            document.getElementById('dispGrossSalary').innerText = formatBRL(baseSalaryForMargin);
+            document.getElementById('dispConsignedDeduction').innerText = formatBRL(totalConsignedMonthly);
+            document.getElementById('dispNetSalary').innerText = formatBRL(conf.netSalary);
+
+            const futureNetSalary = conf.netSalary + totalConsignedMonthly;
+            document.getElementById('salFutureBoostText').innerHTML = `
+                Quando você quitar todos os empréstimos consignados ativos, seu salário líquido mensal subirá para <b class="text-emerald-300">${formatBRL(futureNetSalary)}</b> 
+                (<span class="text-emerald-300 font-bold">+${formatBRL(totalConsignedMonthly)}/mês</span> livre na sua conta)!
+            `;
+
+            const consList = document.getElementById('salaryConsignedList');
+            consList.innerHTML = '';
+
+            if (activeConsigned.length === 0) {
+                consList.innerHTML = `<div class="col-span-3 py-6 text-center text-slate-400 bg-slate-50 rounded-2xl border border-slate-200 text-xs">Nenhum empréstimo consignado ativo descontado em folha.</div>`;
+            } else {
+                activeConsigned.forEach(l => {
+                    const paid = Number(l.paidInstallments) || 0;
+                    const total = Number(l.installments) || 1;
+                    const remainingInst = total - paid;
+                    const remainingVal = remainingInst * Number(l.monthlyInstallment);
+                    const pct = Math.round((paid / total) * 100);
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800 px-2 py-0.5 rounded">Consignado Folha</span>
+                                <h4 class="font-bold text-slate-800 text-sm mt-1">${l.person}</h4>
+                            </div>
+                            <span class="font-extrabold text-purple-700 text-sm">${formatBRL(l.monthlyInstallment)}/mês</span>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px] text-slate-500">
+                                <span>Parcelas: ${paid}/${total}</span>
+                                <span class="font-bold text-slate-700">${pct}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-purple-600 h-2 rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs pt-2 border-t border-slate-200/70">
+                            <span class="text-slate-500">Restante: <b class="text-slate-800">${formatBRL(remainingVal)}</b></span>
+                            <button onclick="openPayLoanModal('${l.id}')" class="text-purple-700 font-bold text-xs hover:underline flex items-center">
+                                <i class="fa-solid fa-check-circle mr-1"></i> Registrar Parcela
+                            </button>
+                        </div>
+                    `;
+                    consList.appendChild(card);
+                });
+            }
+        }
+
+        function saveSalaryConfig(e) {
+            e.preventDefault();
+            appState.salaryConfig.grossSalary = parseFloat(document.getElementById('salGross').value) || 0;
+            appState.salaryConfig.netSalary = parseFloat(document.getElementById('salNet').value) || 0;
+            appState.salaryConfig.payDay = parseInt(document.getElementById('salDay').value) || 5;
+            appState.salaryConfig.marginPct = parseFloat(document.getElementById('salMarginPct').value) || 35;
+            appState.salaryConfig.accountId = document.getElementById('salAccountId').value;
+
+            saveData(true);
             renderAll();
-        }
-
-        function deleteTransaction(id) {
-            state.transactions = state.transactions.filter(t => t.id !== id);
-            saveState(true);
-            renderAll();
-        }
-
-        function getNetSalary() {
-            const s = state.salary || {};
-            const gross = (Number(s.gross) || 0) + (Number(s.bonus) || 0);
-            const ded = (Number(s.inss) || 0) + (Number(s.irrf) || 0) + (Number(s.otherDed) || 0);
-            return Math.max(0, gross - ded);
-        }
-
-        function calculateSalaryPreview() {
-            const gross = (Number(document.getElementById('salGross').value) || 0) + (Number(document.getElementById('salBonus').value) || 0);
-            const ded = (Number(document.getElementById('salInss').value) || 0) + (Number(document.getElementById('salIrrf').value) || 0) + (Number(document.getElementById('salOtherDed').value) || 0);
-            const net = Math.max(0, gross - ded);
-            const marginTotal = net * 0.35;
-            const consignadoUsed = state.loans
-                .filter(l => l.type === 'CONSIGNADO')
-                .reduce((s, l) => s + (Number(l.installment) || 0), 0);
-
-            document.getElementById('salNetPreview').textContent = formatBRL(net);
-            document.getElementById('salMarginTotal').textContent = formatBRL(marginTotal);
-            document.getElementById('salMarginUsed').textContent = formatBRL(consignadoUsed);
-            document.getElementById('salMarginAvailable').textContent = formatBRL(Math.max(0, marginTotal - consignadoUsed));
-        }
-
-        function renderSalaryTab() {
-            const s = state.salary || {};
-            document.getElementById('salGross').value = s.gross || '';
-            document.getElementById('salBonus').value = s.bonus || '';
-            document.getElementById('salInss').value = s.inss || '';
-            document.getElementById('salIrrf').value = s.irrf || '';
-            document.getElementById('salOtherDed').value = s.otherDed || '';
-            document.getElementById('salPayDay').value = s.payDay || 5;
-
-            const accSel = document.getElementById('salAccountId');
-            accSel.innerHTML = state.accounts.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join('');
-            accSel.value = s.accountId || state.accounts[0]?.id || 'acc-default';
-
-            calculateSalaryPreview();
-        }
-
-        function saveSalaryConfig() {
-            state.salary = {
-                gross: Number(document.getElementById('salGross').value) || 0,
-                bonus: Number(document.getElementById('salBonus').value) || 0,
-                inss: Number(document.getElementById('salInss').value) || 0,
-                irrf: Number(document.getElementById('salIrrf').value) || 0,
-                otherDed: Number(document.getElementById('salOtherDed').value) || 0,
-                payDay: Math.min(31, Math.max(1, Number(document.getElementById('salPayDay').value) || 5)),
-                accountId: document.getElementById('salAccountId').value
-            };
-            saveState(true);
-            renderAll();
-            alert('Dados do holerite salvos!');
+            showToast('Configurações salariais salvas!');
         }
 
         function launchNetSalaryTx() {
-            const net = getNetSalary();
-            if (net <= 0) {
-                alert('Cadastre primeiro um salário líquido maior que zero na aba Salário & Holerite.');
+            const conf = appState.salaryConfig;
+            if (!conf.netSalary || conf.netSalary <= 0) {
                 switchTab('salary');
+                showToast('Cadastre primeiro o valor do seu Salário Líquido.', 'error');
                 return;
             }
-            const day = String(state.salary.payDay || 5).padStart(2, '0');
-            state.transactions.unshift({
-                id: 'tx-sal-' + Date.now(),
+
+            const currentMonth = appState.selectedMonth;
+            const dayStr = String(Math.min(28, Math.max(1, conf.payDay || 5))).padStart(2, '0');
+            const dueDate = `${currentMonth}-${dayStr}`;
+
+            const existing = appState.transactions.find(t => t.category === 'Salário' && (t.dueDate || '').startsWith(currentMonth));
+            if (existing) {
+                showToast('O Salário Líquido já foi lançado neste mês!', 'error');
+                return;
+            }
+
+            appState.transactions.push({
+                id: 'tx_sal_' + Date.now(),
                 type: 'INCOME',
-                amount: net,
-                description: `Salário Líquido (${state.selectedMonth})`,
+                description: 'Salário Líquido Recebido',
+                amount: conf.netSalary,
+                dueDate: dueDate,
                 category: 'Salário',
-                accountId: state.salary.accountId || state.accounts[0]?.id || 'acc-default',
-                date: `${state.selectedMonth}-${day}`,
-                status: 'PAID'
+                accountId: conf.accountId || appState.accounts[0]?.id || 'acc_1',
+                status: 'COMPLETED'
             });
-            saveState(true);
+
+            saveData(true);
             renderAll();
-            alert(`Salário líquido de ${formatBRL(net)} lançado em ${state.selectedMonth}!`);
+            showToast(`Salário Líquido de ${formatBRL(conf.netSalary)} lançado em ${currentMonth}!`);
         }
 
-        function openLoanModal() {
-            document.getElementById('loanTitle').value = '';
-            document.getElementById('loanType').value = 'CONSIGNADO';
-            document.getElementById('loanInstallment').value = '';
-            document.getElementById('loanTotalInstallments').value = '48';
-            document.getElementById('loanPaidInstallments').value = '0';
-            document.getElementById('loanRemainingDebt').value = '';
-            const modal = document.getElementById('loanModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+        // --- MÓDULO EMPRÉSTIMOS ---
+        function renderLoans() {
+            const container = document.getElementById('loansList');
+            container.innerHTML = '';
+
+            let totalConsigned = 0;
+            let totalConsignedMonthly = 0;
+            let totalTaken = 0;
+            let totalGiven = 0;
+
+            if (appState.loans.length === 0) {
+                container.innerHTML = `<div class="col-span-2 py-10 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">Nenhum contrato de empréstimo cadastrado.</div>`;
+                document.getElementById('loanTotalConsigned').innerText = formatBRL(0);
+                document.getElementById('loanConsignedMonthlyCount').innerText = 'R$ 0,00/mês';
+                document.getElementById('loanTotalTaken').innerText = formatBRL(0);
+                document.getElementById('loanTotalGiven').innerText = formatBRL(0);
+                return;
+            }
+
+            appState.loans.forEach(loan => {
+                const paidCount = Number(loan.paidInstallments) || 0;
+                const totalCount = Number(loan.installments) || 1;
+                const monthlyInst = Number(loan.monthlyInstallment) || 0;
+
+                const remainingInst = Math.max(0, totalCount - paidCount);
+                const remainingAmount = remainingInst * monthlyInst;
+                const progress = Math.min(100, Math.round((paidCount / totalCount) * 100));
+
+                if (loan.type === 'CONSIGNED' && remainingInst > 0) {
+                    totalConsigned += remainingAmount;
+                    totalConsignedMonthly += monthlyInst;
+                } else if (loan.type === 'TAKEN' && remainingInst > 0) {
+                    totalTaken += remainingAmount;
+                } else if (loan.type === 'GIVEN' && remainingInst > 0) {
+                    totalGiven += remainingAmount;
+                }
+
+                let badgeClass = 'bg-purple-100 text-purple-800';
+                let typeLabel = 'Consignado (Desconto em Folha)';
+                let barColor = 'bg-purple-600';
+
+                if (loan.type === 'TAKEN') {
+                    badgeClass = 'bg-rose-100 text-rose-800';
+                    typeLabel = 'Empréstimo a Pagar (Conta)';
+                    barColor = 'bg-rose-500';
+                } else if (loan.type === 'GIVEN') {
+                    badgeClass = 'bg-emerald-100 text-emerald-800';
+                    typeLabel = 'Empréstimo Concedido (A Receber)';
+                    barColor = 'bg-emerald-500';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${badgeClass} uppercase">${typeLabel}</span>
+                            <button onclick="deleteLoan('${loan.id}')" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <h4 class="font-extrabold text-slate-800 text-lg mt-2">${loan.person}</h4>
+                        <div class="flex justify-between items-center text-xs text-slate-500 mt-1">
+                            <span>Parcela: <b class="text-slate-800">${formatBRL(monthlyInst)}/mês</b></span>
+                            <span>Início: ${formatDateBR(loan.startDate)}</span>
+                        </div>
+                        ${loan.notes ? `<p class="text-xs text-slate-400 italic mt-1.5">${loan.notes}</p>` : ''}
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-500">Progresso de Quitação:</span>
+                            <span class="font-bold text-slate-800">${paidCount} de ${totalCount} (${progress}%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                            <div class="h-2.5 ${barColor} rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <div>
+                            <span class="text-[11px] text-slate-400 block">Saldo Restante</span>
+                            <span class="font-extrabold text-slate-900 text-base">${formatBRL(remainingAmount)}</span>
+                        </div>
+                        ${remainingInst > 0 ? `
+                            <button onclick="openPayLoanModal('${loan.id}')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition flex items-center">
+                                <i class="fa-solid fa-check mr-1.5 text-emerald-400"></i> Registrar Parcela
+                            </button>
+                        ` : `
+                            <span class="px-3 py-1.5 bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs flex items-center">
+                                <i class="fa-solid fa-check-double mr-1"></i> Quitado!
+                            </span>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('loanTotalConsigned').innerText = formatBRL(totalConsigned);
+            document.getElementById('loanConsignedMonthlyCount').innerText = `${formatBRL(totalConsignedMonthly)}/mês em folha`;
+            document.getElementById('loanTotalTaken').innerText = formatBRL(totalTaken);
+            document.getElementById('loanTotalGiven').innerText = formatBRL(totalGiven);
+        }
+
+        function openLoanModal(presetType = null) {
+            document.getElementById('formLoan').reset();
+            document.getElementById('loanStartDate').value = new Date().toISOString().split('T')[0];
+            if (presetType) document.getElementById('loanType').value = presetType;
+            toggleLoanTypeFields();
+            document.getElementById('modalLoan').classList.remove('hidden');
         }
 
         function closeLoanModal() {
-            const modal = document.getElementById('loanModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById('modalLoan').classList.add('hidden');
+        }
+
+        function toggleLoanTypeFields() {
+            const type = document.getElementById('loanType').value;
+            const callout = document.getElementById('consignedInfoCallout');
+            const label = document.getElementById('loanPersonLabel');
+
+            if (type === 'CONSIGNED') {
+                callout.classList.remove('hidden');
+                label.innerText = 'Banco / Instituição Consignante';
+            } else if (type === 'GIVEN') {
+                callout.classList.add('hidden');
+                label.innerText = 'Nome do Devedor (Quem vai te pagar)';
+            } else {
+                callout.classList.add('hidden');
+                label.innerText = 'Banco / Credor';
+            }
         }
 
         function saveLoan(e) {
             e.preventDefault();
-            state.loans.push({
-                id: 'loan-' + Date.now(),
-                title: document.getElementById('loanTitle').value.trim(),
+            appState.loans.push({
+                id: 'loan_' + Date.now(),
                 type: document.getElementById('loanType').value,
-                installment: Number(document.getElementById('loanInstallment').value) || 0,
-                totalInstallments: Number(document.getElementById('loanTotalInstallments').value) || 1,
-                paidInstallments: Number(document.getElementById('loanPaidInstallments').value) || 0,
-                remainingDebt: Number(document.getElementById('loanRemainingDebt').value) || 0
+                person: document.getElementById('loanPerson').value.trim(),
+                monthlyInstallment: parseFloat(document.getElementById('loanMonthlyInstallment').value),
+                installments: parseInt(document.getElementById('loanInstallments').value) || 1,
+                paidInstallments: parseInt(document.getElementById('loanPaidInstallments').value) || 0,
+                startDate: document.getElementById('loanStartDate').value,
+                notes: document.getElementById('loanNotes').value.trim()
             });
-            saveState(true);
+
+            saveData(true);
             closeLoanModal();
             renderAll();
+            showToast('Contrato de empréstimo salvo!');
         }
 
-        function deleteLoan(id) {
-            state.loans = state.loans.filter(l => l.id !== id);
-            saveState(true);
-            renderAll();
-        }
+        function openPayLoanModal(loanId) {
+            const loan = appState.loans.find(l => l.id === loanId);
+            if (!loan) return;
 
-        function renderLoansTab() {
-            const grid = document.getElementById('loansGrid');
-            if (!grid) return;
-            if (!state.loans.length) {
-                grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400 text-sm">Nenhum empréstimo cadastrado.</div>`;
-                return;
+            document.getElementById('payLoanId').value = loan.id;
+            document.getElementById('payLoanPerson').innerText = loan.person;
+            document.getElementById('payLoanAmount').value = loan.monthlyInstallment;
+
+            const isConsigned = loan.type === 'CONSIGNED';
+            const notice = document.getElementById('payLoanConsignedNotice');
+            const checkbox = document.getElementById('payLoanCreateTx');
+
+            if (isConsigned) {
+                notice.classList.remove('hidden');
+                checkbox.checked = false;
+            } else {
+                notice.classList.add('hidden');
+                checkbox.checked = true;
             }
-            grid.innerHTML = state.loans.map(l => `
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${l.type === 'CONSIGNADO' ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-700'}">${l.type}</span>
-                            <h4 class="font-bold text-slate-800 text-base mt-1">${escapeHtml(l.title)}</h4>
+
+            document.getElementById('modalPayLoan').classList.remove('hidden');
+        }
+
+        function closePayLoanModal() {
+            document.getElementById('modalPayLoan').classList.add('hidden');
+        }
+
+        function savePayLoan(e) {
+            e.preventDefault();
+            const loanId = document.getElementById('payLoanId').value;
+            const amount = parseFloat(document.getElementById('payLoanAmount').value);
+            const createTx = document.getElementById('payLoanCreateTx').checked;
+
+            const loan = appState.loans.find(l => l.id === loanId);
+            if (loan) {
+                loan.paidInstallments = (Number(loan.paidInstallments) || 0) + 1;
+
+                if (createTx) {
+                    const isGiven = loan.type === 'GIVEN';
+                    appState.transactions.push({
+                        id: 'tx_loan_' + Date.now(),
+                        type: isGiven ? 'INCOME' : 'EXPENSE',
+                        description: `${isGiven ? 'Recebimento' : 'Pagamento'} Parcela (${loan.paidInstallments}/${loan.installments}): ${loan.person}`,
+                        amount: amount,
+                        dueDate: new Date().toISOString().split('T')[0],
+                        category: 'Empréstimos',
+                        accountId: appState.accounts[0]?.id || 'acc_1',
+                        status: 'COMPLETED'
+                    });
+                }
+
+                saveData(true);
+                closePayLoanModal();
+                renderAll();
+                showToast('Parcela registrada com sucesso!');
+            }
+        }
+
+        async function deleteLoan(id) {
+            const ok = await showConfirmModal('Excluir Contrato', 'Tem certeza que deseja excluir este empréstimo?');
+            if (ok) {
+                appState.loans = appState.loans.filter(l => l.id !== id);
+                saveData(true);
+                renderAll();
+                showToast('Contrato excluído.');
+            }
+        }
+
+        // --- CONTAS & ORÇAMENTOS ---
+        function renderAccounts() {
+            const container = document.getElementById('accountsList');
+            container.innerHTML = '';
+            let grandTotal = 0;
+
+            appState.accounts.forEach(acc => {
+                const inc = appState.transactions
+                    .filter(t => t.accountId === acc.id && t.type === 'INCOME' && t.status === 'COMPLETED')
+                    .reduce((s, t) => s + Number(t.amount), 0);
+                const exp = appState.transactions
+                    .filter(t => t.accountId === acc.id && t.type === 'EXPENSE' && t.status === 'COMPLETED')
+                    .reduce((s, t) => s + Number(t.amount), 0);
+
+                const currentBalance = Number(acc.initialBalance) + inc - exp;
+                grandTotal += currentBalance;
+
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-slate-50 p-3.5 rounded-2xl border border-slate-200';
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                            <i class="fa-solid fa-building-columns text-sm"></i>
                         </div>
-                        <button onclick="deleteLoan('${l.id}')" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash text-xs"></i></button>
+                        <div>
+                            <div class="font-bold text-slate-800 text-xs sm:text-sm">${acc.name}</div>
+                            <div class="text-[11px] text-slate-400">Saldo inicial: ${formatBRL(acc.initialBalance)}</div>
+                        </div>
                     </div>
-                    <div class="text-xs text-slate-600 space-y-1">
-                        <div class="flex justify-between"><span>Parcela mensal:</span><strong class="text-slate-900">${formatBRL(l.installment)}</strong></div>
-                        <div class="flex justify-between"><span>Parcelas:</span><strong>${l.paidInstallments} / ${l.totalInstallments}</strong></div>
-                        <div class="flex justify-between"><span>Saldo devedor:</span><strong class="text-purple-700">${formatBRL(l.remainingDebt)}</strong></div>
-                    </div>
-                </div>
-            `).join('');
+                    <div class="font-extrabold text-slate-900 text-sm sm:text-base">${formatBRL(currentBalance)}</div>
+                `;
+                container.appendChild(item);
+            });
+
+            document.getElementById('accountsTotalBalance').innerText = formatBRL(grandTotal);
         }
 
         function openAccountModal() {
-            document.getElementById('accName').value = '';
-            document.getElementById('accBalance').value = '';
-            const modal = document.getElementById('accountModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            document.getElementById('formAccount').reset();
+            document.getElementById('modalAccount').classList.remove('hidden');
         }
 
         function closeAccountModal() {
-            const modal = document.getElementById('accountModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById('modalAccount').classList.add('hidden');
         }
 
         function saveAccount(e) {
             e.preventDefault();
-            state.accounts.push({
-                id: 'acc-' + Date.now(),
+            appState.accounts.push({
+                id: 'acc_' + Date.now(),
                 name: document.getElementById('accName').value.trim(),
-                balance: Number(document.getElementById('accBalance').value) || 0
+                initialBalance: parseFloat(document.getElementById('accInitialBalance').value) || 0
             });
-            saveState(true);
+            saveData(true);
+            updateAccountDropdowns();
             closeAccountModal();
             renderAll();
+            showToast('Conta adicionada!');
         }
 
-        function renderAccountsTab() {
-            const accList = document.getElementById('accountsList');
-            if (accList) {
-                accList.innerHTML = state.accounts.map(a => `
-                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                        <span class="font-bold text-slate-800 text-sm">${escapeHtml(a.name)}</span>
-                        <span class="font-extrabold text-blue-700 text-sm">${formatBRL(a.balance)}</span>
-                    </div>
-                `).join('');
+        function renderBudgets() {
+            const container = document.getElementById('budgetsList');
+            container.innerHTML = '';
+            const currentMonth = appState.selectedMonth;
+
+            if (appState.budgets.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center">Nenhum teto de gastos definido.</p>`;
+                return;
             }
 
-            const budList = document.getElementById('budgetsList');
-            if (budList) {
-                budList.innerHTML = DEFAULT_CATEGORIES.EXPENSE.map(cat => {
-                    const limitVal = state.budgets[cat] || '';
-                    return `
-                        <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                            <span class="text-xs font-bold text-slate-700">${escapeHtml(cat)}</span>
-                            <input type="number" step="0.01" data-budget-cat="${escapeHtml(cat)}" value="${limitVal}" placeholder="Sem limite" class="w-32 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-right">
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
-
-        function saveBudgets() {
-            document.querySelectorAll('[data-budget-cat]').forEach(inp => {
-                const cat = inp.getAttribute('data-budget-cat');
-                const val = Number(inp.value);
-                if (val > 0) state.budgets[cat] = val;
-                else delete state.budgets[cat];
-            });
-            saveState(true);
-            renderAll();
-            alert('Limites de orçamento salvos!');
-        }
-
-        function renderAlerts() {
-            const container = document.getElementById('alertsContainer');
-            if (!container) return;
-            const alerts = [];
-            const monthTx = getMonthTransactions();
-
-            Object.entries(state.budgets || {}).forEach(([cat, limit]) => {
-                const spent = monthTx
-                    .filter(t => t.type === 'EXPENSE' && t.category === cat)
+            appState.budgets.forEach(b => {
+                const spent = appState.transactions
+                    .filter(t => (t.dueDate || '').startsWith(currentMonth) && t.category === b.category && t.type === 'EXPENSE')
                     .reduce((s, t) => s + Number(t.amount), 0);
-                if (spent > limit) {
-                    alerts.push(`Orçamento de <strong>${escapeHtml(cat)}</strong> ultrapassado em ${state.selectedMonth}: ${formatBRL(spent)} de ${formatBRL(limit)}.`);
+
+                const pct = b.limit > 0 ? Math.min(100, Math.round((spent / b.limit) * 100)) : 0;
+                let colorClass = 'bg-emerald-500';
+                if (pct >= 75 && pct < 100) colorClass = 'bg-amber-500';
+                if (pct >= 100) colorClass = 'bg-rose-500';
+
+                const catObj = CATEGORIES.find(c => c.id === b.category) || { name: b.category };
+
+                const el = document.createElement('div');
+                el.className = 'space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80';
+                el.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-800">${catObj.name}</span>
+                        <span class="text-slate-600 font-bold">${formatBRL(spent)} / ${formatBRL(b.limit)} (${pct}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                        <div class="h-2.5 ${colorClass} rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function openBudgetModal() {
+            document.getElementById('formBudget').reset();
+            document.getElementById('modalBudget').classList.remove('hidden');
+        }
+
+        function closeBudgetModal() {
+            document.getElementById('modalBudget').classList.add('hidden');
+        }
+
+        function saveBudget(e) {
+            e.preventDefault();
+            const category = document.getElementById('budgetCategory').value;
+            const limit = parseFloat(document.getElementById('budgetLimit').value);
+
+            const index = appState.budgets.findIndex(b => b.category === category);
+            if (index !== -1) appState.budgets[index].limit = limit;
+            else appState.budgets.push({ category, limit });
+
+            saveData(true);
+            closeBudgetModal();
+            renderAll();
+            showToast('Teto de gastos atualizado!');
+        }
+
+        // --- GRÁFICOS ---
+        function renderCharts() {
+            const currentMonth = appState.selectedMonth;
+            const monthTx = appState.transactions.filter(t => (t.dueDate || '').startsWith(currentMonth));
+
+            const ctxCash = document.getElementById('chartCashFlow').getContext('2d');
+            const totalIncome = monthTx.filter(t => t.type === 'INCOME').reduce((s, t) => s + Number(t.amount), 0);
+            const totalExpense = monthTx.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0);
+
+            if (chartCashFlowInstance) chartCashFlowInstance.destroy();
+
+            chartCashFlowInstance = new Chart(ctxCash, {
+                type: 'bar',
+                data: {
+                    labels: ['Entradas (Receitas)', 'Saídas (Despesas)'],
+                    datasets: [{
+                        label: 'Valor (R$)',
+                        data: [totalIncome, totalExpense],
+                        backgroundColor: ['#10b981', '#f43f5e'],
+                        borderRadius: 10,
+                        maxBarThickness: 70
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: value => 'R$ ' + value }
+                        }
+                    }
                 }
             });
 
-            if (!alerts.length) {
-                container.classList.add('hidden');
-                container.innerHTML = '';
-                return;
-            }
+            const ctxCat = document.getElementById('chartCategories').getContext('2d');
+            const expByCat = {};
+            monthTx.filter(t => t.type === 'EXPENSE').forEach(t => {
+                expByCat[t.category] = (expByCat[t.category] || 0) + Number(t.amount);
+            });
 
-            container.classList.remove('hidden');
-            container.innerHTML = alerts.map(msg => `
-                <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-center">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-2.5"></i>
-                    <span>${msg}</span>
-                </div>
-            `).join('');
-        }
+            const labels = Object.keys(expByCat);
+            const values = Object.values(expByCat);
+            const palette = ['#6366f1', '#f59e0b', '#0ea5e9', '#ec4899', '#8b5cf6', '#10b981', '#f43f5e', '#64748b'];
 
-        function openCloudConfigModal() {
-            document.getElementById('cloudScriptUrlInput').value = state.cloudUrl || '';
-            const modal = document.getElementById('cloudConfigModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
+            if (chartCategoriesInstance) chartCategoriesInstance.destroy();
 
-        function closeCloudConfigModal() {
-            const modal = document.getElementById('cloudConfigModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function updateCloudStatusBadge() {
-            const badge = document.getElementById('cloudStatusBadge');
-            const dot = document.getElementById('cloudStatusDot');
-            const text = document.getElementById('cloudStatusText');
-            if (!badge || !dot || !text) return;
-
-            if (state.cloudUrl) {
-                badge.className = 'flex items-center space-x-2 text-xs font-medium px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
-                dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-                text.textContent = 'Google Sheets Conectado';
-            } else {
-                badge.className = 'flex items-center space-x-2 text-xs font-medium px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30';
-                dot.className = 'w-2 h-2 rounded-full bg-amber-400';
-                text.textContent = 'Modo Local / Sem URL';
-            }
-        }
-
-        function saveCloudUrlOnly() {
-            state.cloudUrl = (document.getElementById('cloudScriptUrlInput').value || '').trim();
-            saveState(false);
-            updateCloudStatusBadge();
-            closeCloudConfigModal();
-            alert('URL salva!');
-        }
-
-        function saveCloudUrlAndPush() {
-            state.cloudUrl = (document.getElementById('cloudScriptUrlInput').value || '').trim();
-            saveState(false);
-            updateCloudStatusBadge();
-            closeCloudConfigModal();
-            if (state.cloudUrl) pushStateToCloud(true);
-        }
-
-        async function pushStateToCloud(showFeedback = true) {
-            if (!state.cloudUrl) return;
-            const icon = document.getElementById('syncIcon');
-            if (icon) icon.classList.add('fa-spin');
-            try {
-                await fetch(state.cloudUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'save', payload: state })
-                });
-                if (showFeedback) alert('Dados enviados para a planilha do Google Sheets!');
-            } catch (err) {
-                console.error(err);
-                if (showFeedback) alert('Não foi possível enviar para o Google Sheets agora.');
-            } finally {
-                if (icon) icon.classList.remove('fa-spin');
-            }
-        }
-
-        async function syncNowFromCloud(showFeedback = true) {
-            if (!state.cloudUrl) {
-                if (showFeedback) openCloudConfigModal();
-                return;
-            }
-            const icon = document.getElementById('syncIcon');
-            if (icon) icon.classList.add('fa-spin');
-            try {
-                const res = await fetch(state.cloudUrl);
-                const data = await res.json();
-                if (data && typeof data === 'object') {
-                    const cloudPayload = data.payload || data;
-                    if (Array.isArray(cloudPayload.transactions)) state.transactions = cloudPayload.transactions;
-                    if (Array.isArray(cloudPayload.accounts) && cloudPayload.accounts.length) state.accounts = cloudPayload.accounts;
-                    if (Array.isArray(cloudPayload.loans)) state.loans = cloudPayload.loans;
-                    if (cloudPayload.budgets) state.budgets = cloudPayload.budgets;
-                    if (cloudPayload.salary) state.salary = { ...state.salary, ...cloudPayload.salary };
-                    saveState(false);
-                    renderAll();
-                    if (showFeedback) alert('Sincronizado com o Google Sheets!');
+            chartCategoriesInstance = new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: labels.length ? labels : ['Sem Despesas'],
+                    datasets: [{
+                        data: values.length ? values : [1],
+                        backgroundColor: values.length ? palette.slice(0, labels.length) : ['#e2e8f0'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        }
+                    }
                 }
-            } catch (err) {
-                console.error(err);
-                if (showFeedback) alert('Erro ao buscar dados da planilha. Verifique se o Web App está público e termina em /exec.');
-            } finally {
-                if (icon) icon.classList.remove('fa-spin');
-            }
+            });
         }
 
-        function exportBackupJSON() {
-            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `financontrol-backup-${state.selectedMonth}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
+        // --- EXPORTAÇÃO, IMPORTAÇÃO & DEMO ---
+        function exportJSONBackup() {
+            const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const link = document.createElement('a');
+            link.setAttribute('href', dataStr);
+            link.setAttribute('download', `FinanControl_Backup_${appState.selectedMonth}.json`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            showToast('Arquivo JSON exportado!');
         }
 
-        function importBackupJSON(event) {
+        function importJSONBackup(event) {
             const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (parsed && typeof parsed === 'object') {
-                        state = { ...state, ...parsed };
-                        saveState(true);
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && Array.isArray(imported.transactions)) {
+                        appState = { ...appState, ...imported };
+                        saveData(true);
+                        populateCategoryDropdowns();
                         renderAll();
-                        alert('Backup restaurado com sucesso!');
+                        showToast('Backup JSON restaurado e sincronizado!');
+                    } else {
+                        showToast('Arquivo JSON inválido.', 'error');
                     }
                 } catch (err) {
-                    alert('Ficheiro JSON inválido.');
+                    showToast('Erro ao processar o arquivo.', 'error');
                 }
             };
             reader.readAsText(file);
         }
 
-        function escapeHtml(str) {
-            return String(str || '').replace(/[&<>"']/g, m => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            }[m]));
+        function exportCSVReport() {
+            const currentMonth = appState.selectedMonth;
+            const monthTx = appState.transactions.filter(t => (t.dueDate || '').startsWith(currentMonth));
+
+            if (monthTx.length === 0) {
+                showToast('Não há lançamentos no mês selecionado.', 'error');
+                return;
+            }
+
+            let csv = 'data:text/csv;charset=utf-8,Data;Tipo;Descricao;Categoria;Valor;Status\n';
+            monthTx.forEach(t => {
+                const tipo = t.type === 'INCOME' ? 'Receita' : 'Despesa';
+                const status = t.status === 'COMPLETED' ? 'Efetivado' : 'Previsto';
+                csv += `${t.dueDate};${tipo};"${t.description}";${t.category};${String(t.amount).replace('.', ',')};${status}\n`;
+            });
+
+            const link = document.createElement('a');
+            link.setAttribute('href', encodeURI(csv));
+            link.setAttribute('download', `FinanControl_${currentMonth}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            showToast('Planilha CSV baixada!');
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadState();
+        function loadDemoData() {
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = String(today.getMonth() + 1).padStart(2, '0');
+
+            appState = {
+                selectedMonth: `${y}-${m}`,
+                accounts: [
+                    { id: 'acc_1', name: 'Conta Principal', initialBalance: 1450 },
+                    { id: 'acc_2', name: 'Reserva Nubank', initialBalance: 5200 }
+                ],
+                salaryConfig: {
+                    grossSalary: 7200,
+                    netSalary: 5100,
+                    payDay: 5,
+                    marginPct: 35,
+                    accountId: 'acc_1'
+                },
+                budgets: [
+                    { category: 'Alimentação', limit: 1200 },
+                    { category: 'Moradia', limit: 1800 }
+                ],
+                loans: [
+                    {
+                        id: 'loan_demo_1',
+                        type: 'CONSIGNED',
+                        person: 'Banco do Brasil (Consignado)',
+                        monthlyInstallment: 580,
+                        installments: 48,
+                        paidInstallments: 16,
+                        startDate: `${y - 1}-03-05`,
+                        notes: 'Desconto automático no holerite'
+                    },
+                    {
+                        id: 'loan_demo_2',
+                        type: 'GIVEN',
+                        person: 'Mariana Costa',
+                        monthlyInstallment: 300,
+                        installments: 3,
+                        paidInstallments: 1,
+                        startDate: `${y}-${m}-01`,
+                        notes: 'Transferência Pix'
+                    }
+                ],
+                transactions: [
+                    { id: 'tx_d1', type: 'INCOME', description: 'Salário Líquido Recebido', amount: 5100, dueDate: `${y}-${m}-05`, category: 'Salário', accountId: 'acc_1', status: 'COMPLETED' },
+                    { id: 'tx_d2', type: 'EXPENSE', description: 'Aluguel Residencial', amount: 1550, dueDate: `${y}-${m}-10`, category: 'Moradia', accountId: 'acc_1', status: 'COMPLETED' },
+                    { id: 'tx_d3', type: 'EXPENSE', description: 'Supermercado do Mês', amount: 840, dueDate: `${y}-${m}-14`, category: 'Alimentação', accountId: 'acc_1', status: 'COMPLETED' },
+                    { id: 'tx_d4', type: 'EXPENSE', description: 'Fatura Cartão', amount: 980, dueDate: `${y}-${m}-22`, category: 'Cartão de Crédito', accountId: 'acc_1', status: 'PENDING' }
+                ]
+            };
+
+            saveData(true);
+            populateCategoryDropdowns();
             renderAll();
-            if (state.cloudUrl) {
-                syncNowFromCloud(false);
+            showToast('Dados de demonstração carregados!');
+        }
+
+        async function confirmResetAllData() {
+            const ok = await showConfirmModal('Zerar Todos os Dados', 'Todos os lançamentos, contas e empréstimos serão apagados.');
+            if (ok) {
+                appState = {
+                    transactions: [],
+                    loans: [],
+                    accounts: [{ id: 'acc_1', name: 'Conta Principal', initialBalance: 0 }],
+                    budgets: [],
+                    salaryConfig: { grossSalary: 0, netSalary: 0, payDay: 5, marginPct: 35, accountId: 'acc_1' },
+                    selectedMonth: getFormattedMonth(new Date())
+                };
+                saveData(true);
+                populateCategoryDropdowns();
+                renderAll();
+                showToast('Dados zerados com sucesso.');
             }
-        });
+        }
+
+        // --- TOAST & CONFIRMAÇÃO ---
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toastNotification');
+            const msgEl = document.getElementById('toastMessage');
+            const iconEl = document.getElementById('toastIcon');
+
+            msgEl.innerText = message;
+            if (type === 'error') {
+                iconEl.className = 'text-rose-400';
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+            } else {
+                iconEl.className = 'text-emerald-400';
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3200);
+        }
+
+        function showConfirmModal(title, message) {
+            return new Promise((resolve) => {
+                document.getElementById('confirmTitle').innerText = title;
+                document.getElementById('confirmMessage').innerText = message;
+                document.getElementById('modalConfirm').classList.remove('hidden');
+                confirmResolver = resolve;
+            });
+        }
+
+        function closeConfirmModal(result) {
+            document.getElementById('modalConfirm').classList.add('hidden');
+            if (confirmResolver) {
+                confirmResolver(result);
+                confirmResolver = null;
+            }
+        }
     </script>
 </body>
 </html>
-
